@@ -1,0 +1,131 @@
+#define SWAT_START_WALK 16
+#define SWAT_END_WALK 48
+
+class player{
+	var lower_mesh;
+	var upper_mesh;
+	var lower_obj;
+	var upper_obj;
+	var weapon_mesh;
+	var weapon_obj;
+	var obj;
+	var position;
+	var angle;
+	var direction;
+	var step;
+	var frame_step;
+	var current_frame;
+	var run;
+	var my_bullet;
+	var has_shot;
+	var color;
+	var shoot_fx;
+	var step_fx;
+	var my_level;
+	
+	init(col,lev);
+	draw();
+	setposition(pos);
+	setrotation(angle);
+	update(local_matrix);
+};
+
+function player::setrotation(angle){
+	obj.setrotation(angle*180.0/PI,0,1,0);	
+}
+
+function player::init(col,lev){
+	color = col;
+	lower_mesh = CVmnewmesh("swat_lower.aam");
+	var sf1 = lower_mesh.normalize(1);
+	upper_mesh = CVmnewmesh("swat_upper.aam");
+	upper_mesh.scale(sf1);	
+	weapon_mesh =CVMnewmesh("rocketl.aam");
+	weapon_mesh.scale(sf1);
+	
+	lower_obj = CVmobj(lower_mesh);
+	upper_obj = CVmobj(upper_mesh);
+	weapon_obj = CVmobj(weapon_mesh);
+	obj = CVmobj();
+	obj.addchild(upper_obj);
+	obj.addchild(lower_obj);
+	obj.addchild(weapon_obj);
+	
+	obj.modulatematerials(color);	
+	
+	angle=0;
+	direction=[0,0,1];
+	step=0.1;
+	frame_step=1.0;
+	current_frame= SWAT_START_WALK;
+	run =1;
+	
+	has_shot= false;
+	shoot_fx = CVmVRAWAV("shoot.wav");
+	step_fx = CVmVRAWAV("step.wav");
+	
+	my_level=lev;
+}
+
+function player::draw(){
+	obj.draw(VR_FRAMENUMBER,current_frame);
+	if(has_shot)
+		my_bullet.draw();
+}
+
+function player::setposition(pos){
+	position = pos;
+	obj.setposition(position);
+}
+
+function player::update(local_matrix){
+	var old_position = position;
+	
+	if(keypressed(VK_SHIFT)){
+		run=2;
+	}else{
+		run=1;
+	}
+	
+	if(keypressed(VK_RIGHT))
+		angle -= 0.01;
+	else if(keypressed(VK_LEFT))
+		angle += 0.01;
+	
+	direction=[sin(angle), 0, cos(angle)];
+	
+	if(keypressed(VK_UP)){
+		position += (direction*step*run);
+		current_frame += frame_step;
+		if(current_frame > SWAT_END_WALK){
+			current_frame=SWAT_END_WALK;
+			step_fx.play();
+		}		
+	}		
+	else if(keypressed(VK_DOWN)){
+		position -= (direction*step);
+		current_frame -= frame_step;
+		if(current_frame < SWAT_START_WALK)
+			current_frame=SWAT_START_WALK;		
+	}
+
+		
+	setrotation(angle);
+	setposition(position);
+	
+	var i = int(position.z);
+	var j = int(position.x);
+	var inside = local_matrix[i][j];
+	trace(inside);
+	if(inside==1)
+		position=old_position;
+		
+	if(keypressed(VK_SPACE)&& !has_shot){
+		my_bullet=bullet();
+		my_bullet.init(position,direction);
+		shoot_fx.play();
+		has_shot = true;
+	}
+	if(has_shot)
+		my_bullet.update();
+}
