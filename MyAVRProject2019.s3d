@@ -2,9 +2,7 @@
 #include <Script3d.h>
 #include <Camera.s3d.h>
 
-#include "Bullet.s3d"
 #include "Player.s3d"
-
 #include "Level.s3d"
 
 /* Set global scene parameters */

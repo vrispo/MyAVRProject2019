@@ -1,3 +1,5 @@
+#include "Bullet.s3d"
+
 #define SWAT_START_WALK 16
 #define SWAT_END_WALK 48
 
@@ -21,9 +23,8 @@ class player{
 	var color;
 	var shoot_fx;
 	var step_fx;
-	var my_level;
 	
-	init(col,lev);
+	init(col);
 	draw();
 	setposition(pos);
 	setrotation(angle);
@@ -34,7 +35,7 @@ function player::setrotation(angle){
 	obj.setrotation(angle*180.0/PI,0,1,0);	
 }
 
-function player::init(col,lev){
+function player::init(col){
 	color = col;
 	lower_mesh = CVmnewmesh("swat_lower.aam");
 	var sf1 = lower_mesh.normalize(1);
@@ -63,8 +64,6 @@ function player::init(col,lev){
 	has_shot= false;
 	shoot_fx = CVmVRAWAV("shoot.wav");
 	step_fx = CVmVRAWAV("step.wav");
-	
-	my_level=lev;
 }
 
 function player::draw(){
