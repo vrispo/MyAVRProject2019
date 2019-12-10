@@ -1,0 +1,368 @@
+/* Include s3d symbols */
+#include <Script3d.h>
+#include <Camera.s3d.h>
+
+#define SWAT_START_WALK 16
+#define SWAT_END_WALK 48
+
+/* Set global scene parameters */
+SET SCENE_FOV  = 60;
+SET SCENE_NEAR = 0.5;
+SET SCENE_FAR  = 1000;
+
+
+// TODO: put your global variables here
+var level_matrix;
+	
+class level{
+	var wall_mesh;
+	var wall_obj_array;
+	var floor_mesh;
+	var wall_material;
+	var wall_texture;
+	var floor_material;
+	var floor_texture;
+	init(level_textfile);
+	draw();
+};
+
+function level::init(level_textfile){
+	wall_texture = CVmTexture("mattoni03.png");
+	wall_material = CVmMaterial();
+	wall_material.setTexture(wall_texture);
+	wall_material.changetextureparams(VR_V_TILING, 3); //greater if you want smaller
+	wall_obj_array = array(0);
+	
+	wall_mesh = CVmNewMesh(VRP_BOX);
+	wall_mesh.setmaterial(wall_material);
+	wall_mesh.scale(1.0,3.0,1.0);
+	var f = loadfile(level_textfile);
+	
+	var num_rows = len(f);
+	var num_columns = len(f[0]);
+	level_matrix = array(num_rows);
+	for(var i=0; i<num_rows ; i++){
+		level_matrix[i]= array(num_columns);
+		for(var j=0; j<num_columns; j++){
+			if(f[i][j]== "*"){
+				level_matrix[i][j] = 1;
+				var t = CVmObj(wall_mesh);
+				t.setposition(j, 0.0, i);
+				aadd(wall_obj_array,t);
+			}
+			else{
+				level_matrix[i][j] = 0;
+			}
+		}
+	}
+
+	floor_material = CVmMaterial();
+	floor_texture = CVmTexture("MARMO.png");
+	floor_material.setTexture(floor_texture);
+	floor_material.changetextureparams(VR_U_TILING,4);
+	floor_material.changetextureparams(VR_V_TILING,4);
+	
+	floor_mesh = CVmNewMesh(VRP_BOX);
+	floor_mesh.scale(num_columns, 1.0 ,num_rows);
+	floor_mesh.translate(0.0, -1.0, 0.0);
+	floor_mesh.setmaterial(floor_material);
+	floor_mesh.modulatematerials(0,1,0,1); //green completely opaque
+}
+
+function level::draw(){
+	foreach (var t in wall_obj_array)
+		t.draw();
+	floor_mesh.draw();
+}
+
+var mylevel;
+
+class bullet{
+	var position;
+	var direction;
+	var speed;
+	var mesh;
+	var obj;
+	init(pos,dir);
+	update();
+	draw();
+};
+
+function bullet::init(pos,dir){
+	position = pos +[0,1,0];
+	direction = dir;
+	speed = 0.2;
+	mesh = cvmNewMesh(VRP_BOX);
+	mesh.scale(0.1);
+	obj = CVmObj(mesh);
+	obj.SetPosition(position);
+}
+
+function bullet::update(){
+	position += direction*speed;
+	obj.setposition(position);
+}
+
+function bullet::draw(){
+	obj.draw();
+}
+
+class player{
+	var lower_mesh;
+	var upper_mesh;
+	var lower_obj;
+	var upper_obj;
+	var weapon_mesh;
+	var weapon_obj;
+	var obj;
+	var position;
+	var angle;
+	var direction;
+	var step;
+	var frame_step;
+	var current_frame;
+	var run;
+	var my_bullet;
+	var has_shot;
+	var color;
+	var shoot_fx;
+	var step_fx;
+	
+	init(col);
+	draw();
+	setposition(pos);
+	setrotation(angle);
+	update();
+};
+
+function player::setrotation(angle){
+	obj.setrotation(angle*180.0/PI,0,1,0);	
+}
+
+function player::init(col){
+	color = col;
+	lower_mesh = CVmnewmesh("swat_lower.aam");
+	var sf1 = lower_mesh.normalize(1);
+	upper_mesh = CVmnewmesh("swat_upper.aam");
+	upper_mesh.scale(sf1);	
+	weapon_mesh =CVMnewmesh("rocketl.aam");
+	weapon_mesh.scale(sf1);
+	
+	lower_obj = CVmobj(lower_mesh);
+	upper_obj = CVmobj(upper_mesh);
+	weapon_obj = CVmobj(weapon_mesh);
+	obj = CVmobj();
+	obj.addchild(upper_obj);
+	obj.addchild(lower_obj);
+	obj.addchild(weapon_obj);
+	
+	obj.modulatematerials(color);	
+	
+	angle=0;
+	direction=[0,0,1];
+	step=0.1;
+	frame_step=1.0;
+	current_frame= SWAT_START_WALK;
+	run =1;
+	
+	has_shot= false;
+	shoot_fx = CVmVRAWAV("shoot.wav");
+	step_fx = CVmVRAWAV("step.wav");
+}
+
+function player::draw(){
+	obj.draw(VR_FRAMENUMBER,current_frame);
+	if(has_shot)
+		my_bullet.draw();
+}
+
+function player::setposition(pos){
+	position = pos;
+	obj.setposition(position);
+}
+
+function player::update(){
+	var old_position = position;
+	
+	if(keypressed(VK_SHIFT)){
+		run=2;
+	}else{
+		run=1;
+	}
+	
+	if(keypressed(VK_RIGHT))
+		angle -= 0.01;
+	else if(keypressed(VK_LEFT))
+		angle += 0.01;
+	
+	direction=[sin(angle), 0, cos(angle)];
+	
+	if(keypressed(VK_UP)){
+		position += (direction*step*run);
+		current_frame += frame_step;
+		if(current_frame > SWAT_END_WALK){
+			current_frame=SWAT_END_WALK;
+			step_fx.play();
+		}		
+	}		
+	else if(keypressed(VK_DOWN)){
+		position -= (direction*step);
+		current_frame -= frame_step;
+		if(current_frame < SWAT_START_WALK)
+			current_frame=SWAT_START_WALK;		
+	}
+
+		
+	setrotation(angle);
+	setposition(position);
+	
+	var i = int(position.z);
+	var j = int(position.x);
+	var inside = level_matrix[i][j];
+	trace(inside);
+	if(inside==1)
+		position=old_position;
+		
+	if(keypressed(VK_SPACE)&& !has_shot){
+		my_bullet=bullet();
+		my_bullet.init(position,direction);
+		shoot_fx.play();
+		has_shot = true;
+	}
+	if(has_shot)
+		my_bullet.update();
+}
+
+var myplayer;
+var myplayer2;
+
+/* Camera globals */
+var CamPos = [0.0, 5.0, 30.0]; 	// camera position
+
+/* Light globals */
+var Light0;
+var PosL = [16.0, 100.0, 16.0];	// default light position
+
+
+/* Function declarations */
+function CameraMoveMouse();
+function DrawGrid(col, size);
+
+
+
+function OnDownload()
+{
+	// TODO: download your resources here
+	// E.g.: FileDownload("resource.ext");
+	FileDownload("XVRResources.zip");
+}
+
+function OnInit(params)
+{
+	/* initialize camera */
+	CameraGetCurrent().SetPosition(CamPos);
+
+	/* initialize light */
+	Light0 = CVmLight();
+	Light0.SetPosition(PosL);
+	Light0.SetDiffuse(1, 1, 1);
+	Light0.Enable();	
+
+	// TODO: put your initialization code here
+	mylevel = level();
+	mylevel.init("level.txt");
+	myplayer = player();
+	myplayer.init([1,0,0]);
+	myplayer.setposition([2,0,2]);
+	
+	myplayer2 = player();
+	myplayer2.init([0,0,1]);
+	myplayer2.setposition([2,0,6]);
+}
+
+function OnFrame()
+{
+	/* manage camera */
+	CameraMoveMouse();
+	
+	myplayer.update();
+	myplayer2.update();
+	
+	SceneBegin();
+
+	DrawGrid([0.5, 0.5, 0.5], 100);
+
+	// TODO: put your drawing code here
+	mylevel.draw();
+	myplayer.draw();
+	myplayer2.draw();
+	SceneEnd();
+}
+
+
+
+function DownloadReady(RequestID)
+{
+	// TODO
+}
+
+
+
+function OnTimer()
+{
+	// TODO:
+}
+
+
+function OnEvent(eventID, wparam, lparam){
+	// TODO: put your events handling code here
+}
+
+function OnError(){
+	// TODO: put your errors handling code here
+}
+
+
+function OnExit()
+{
+	// TODO: put your cleanup code here
+}
+
+
+
+// Camera manager (using mouse)
+function CameraMoveMouse()
+{	
+
+	CameraMoveMouse_MBL_LC();
+
+}
+
+
+
+function DrawGrid(col, size)
+{
+	/* let's not mess up current OpenGL status */
+	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
+	
+	glLineWidth(1);
+	glDisable(GL_LIGHTING);
+	glColor(col);
+	var max = size / 2.0;
+	var min = -max;	
+	var step = size / 10.0;
+	
+	glBegin(GL_LINES);
+		for (var i = min; i <= max; i += step)
+		{
+			glVertex(i, 0, max);
+			glVertex(i, 0, min);
+			
+			glVertex(max, 0, i);
+			glVertex(min, 0, i);
+		}
+	glEnd();
+	
+	/* polite restoration of previous OpenGL status */
+	glPopAttrib();
+}
