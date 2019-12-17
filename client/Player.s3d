@@ -1,0 +1,142 @@
+#include "Bullet.s3d"
+
+#define SWAT_START_WALK 16
+#define SWAT_END_WALK 48
+#define COLLISION_SCALE 0.55, 1.6, 1.15
+#define Z_COLLISION_OFF 0.275
+#define X_COLLISION_OFF 0.45
+
+class player{
+	var lower_mesh;
+	var upper_mesh;
+	var collision_box;
+	var weapon_mesh;
+	var obj;
+	var hidden_obj;
+	var position;
+	var angle;
+	var direction;
+	var step;
+	var frame_step;
+	var current_frame;
+	var run;
+	var my_bullet;
+	var has_shot;
+	var color;
+	var shoot_fx;
+	var step_fx;
+	
+	init(col);
+	draw();
+	setposition(pos);
+	setrotation(angle);
+	update(local_matrix);
+};
+
+function player::setrotation(angle){
+	obj.setrotation(angle * 180.0 / PI, 0, 1, 0);	
+	hidden_obj.setrotation(angle * 180.0 / PI, 0, 1, 0);
+}
+
+function player::init(col){
+	color = col;
+	lower_mesh = CVmNewMesh("swat_lower.aam");
+	var sf1 = lower_mesh.normalize(1);
+	upper_mesh = CVmNewMesh("swat_upper.aam");
+	upper_mesh.scale(sf1);
+	collision_box = CVmNewMesh(VRP_BOX);
+	collision_box.scale(COLLISION_SCALE);
+	weapon_mesh = CVmNewMesh("rocketl.aam");
+	weapon_mesh.scale(sf1);
+	
+	var lower_obj = CVmObj(lower_mesh);
+	var upper_obj = CVmObj(upper_mesh);
+	var weapon_obj = CVmObj(weapon_mesh);
+	var collision_obj = CVmObj(collision_box);
+	obj = CVmObj();
+	obj.addchild(upper_obj);
+	obj.addchild(lower_obj);
+	obj.addchild(weapon_obj);
+	hidden_obj = CVmObj();
+	hidden_obj.addchild(collision_obj);
+	hidden_obj.setpivotpoint(Z_COLLISION_OFF, 0, X_COLLISION_OFF);
+	
+	obj.modulatematerials(color);	
+	
+	angle = 0;
+	direction = [0,0,1];
+	step = 0.1;
+	frame_step = 1.0;
+	current_frame = SWAT_START_WALK;
+	run = 1;
+	
+	has_shot = false;
+	shoot_fx = CVmVRawAV("shoot.wav");
+	step_fx = CVmVRawAV("step.wav");
+	step_fx.play(); //So it doesn't block
+}
+
+function player::draw(){
+	obj.draw(VR_FRAMENUMBER, current_frame);
+	hidden_obj.draw();
+	if (has_shot)
+		my_bullet.draw();
+}
+
+function player::setposition(pos){
+	position = pos;
+	obj.setposition(position);
+	hidden_obj.setposition(position + [-Z_COLLISION_OFF, 0, -X_COLLISION_OFF]);
+}
+
+function player::update(local_matrix){
+	var old_position = position;
+	
+	if (keypressed(VK_SHIFT)){
+		run = 2;
+	} else {
+		run = 1;
+	}
+	
+	if (keypressed(VK_RIGHT))
+		angle -= 0.01;
+	else if (keypressed(VK_LEFT))
+		angle += 0.01;
+	
+	direction = [sin(angle), 0, cos(angle)];
+	
+	if (keypressed(VK_UP)){
+		position += (direction * step * run);
+		current_frame += frame_step;
+		if (current_frame == SWAT_END_WALK){
+			current_frame = SWAT_START_WALK + 1;
+			step_fx.play();
+		}		
+	}		
+	else if(keypressed(VK_DOWN)){
+		position -= (direction * step);
+		current_frame -= frame_step;
+		if(current_frame == SWAT_START_WALK)
+			current_frame = SWAT_END_WALK - 1;
+			step_fx.play();		
+	}
+
+		
+	setrotation(angle);
+	setposition(position);
+	
+	var k = int(position.y);
+	var inside = local_matrix[i][j][k];
+	trace(inside);
+	if(inside >= 1)
+		position = old_position;
+		
+	if(keypressed(VK_SPACE) && !has_shot){
+		my_bullet = bullet();
+		my_bullet.init(position, direction);
+		shoot_fx.play();
+		has_shot = true;
+	}
+	if(has_shot)
+		my_bullet.update();
+}

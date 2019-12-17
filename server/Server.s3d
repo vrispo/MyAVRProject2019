@@ -1,0 +1,47 @@
+/* Include s3d symbols */
+#include <Script3d.h>
+
+/* Set global scene parameters */
+SET SCENE_FOV  = 60;
+SET SCENE_NEAR = 0.5;
+SET SCENE_FAR  = 1000;
+
+// TODO: put your global variables here
+
+function OnDownload(){
+	// TODO: download your resources here
+	// E.g.: FileDownload("resource.ext");
+}
+
+function OnInit(params){
+	// TODO: put your initialization code here
+}
+
+function OnFrame(){
+	/* manage camera */
+	SceneBegin();
+
+	// TODO: put your drawing code here
+
+	SceneEnd();
+}
+
+function DownloadReady(RequestID){
+	// TODO
+}
+
+function OnTimer(){
+	// TODO:
+}
+
+function OnEvent(eventID, wparam, lparam){
+	// TODO: put your events handling code here
+}
+
+function OnError(){
+	// TODO: put your errors handling code here
+}
+
+function OnExit(){
+	// TODO: put your cleanup code here
+}
