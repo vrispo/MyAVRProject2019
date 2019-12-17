@@ -1,13 +1,12 @@
 class level{
 	var wall_mesh;
 	var wall_ext_mesh;
-	var wall_obj_mat;
+	var level_obj;
 	var floor_mesh;
 	var wall_material;
 	var wall_texture;
 	var floor_material;
 	var floor_texture;
-	var level_matrix;
 	init(level_textfile);
 	draw();
 };
@@ -17,64 +16,45 @@ function level::init(level_textfile){
 	wall_material = CVmMaterial();
 	wall_material.setTexture(wall_texture);
 	wall_material.changetextureparams(VR_V_TILING, 3); //greater if you want smaller
-	wall_obj_mat = array(0);
-		
+	level_obj = array(0);
 	wall_mesh = CVmNewMesh(VRP_BOX);
 	wall_ext_mesh = CVmNewMesh(VRP_BOX);
 	wall_mesh.scale(1.0,1.0,1.0);
-	wall_mesh.setmaterial(wall_material);
+	wall_mesh.setMaterial(wall_material);
 	wall_ext_mesh.scale(1.0,5.0,1.0);
-	wall_ext_mesh.setmaterial(wall_material);
+	wall_ext_mesh.setMaterial(wall_material);
 	var f = loadfile(level_textfile);
 	
 	var num_rows = len(f);
 	var num_columns = len(f[0]);
-	level_matrix = array(num_rows);
+	
 	for(var i = 0; i < num_rows; i++){
-		level_matrix[i] = array(num_columns);
 		for (var j = 0; j < num_columns; j++){
-			level_matrix[i][j] = array(5);
-			level_matrix[i][j][0] = 0;
-			level_matrix[i][j][1] = 0;
-			level_matrix[i][j][2] = 0;
-			level_matrix[i][j][3] = 0;
-			level_matrix[i][j][4] = 0;
 			if (f[i][j] == "5"){
-				level_matrix[i][j][0] = 1;
-				level_matrix[i][j][1] = 1;
-				level_matrix[i][j][2] = 1;
-				level_matrix[i][j][3] = 1;
-				level_matrix[i][j][4] = 1;
 				var t = CVmObj(wall_ext_mesh);
 				t.setposition(j, 0.0, i);
-				aadd(wall_obj_mat, t);
+				aadd(level_obj, t);
 			} else if (f[i][j] == "3"){
-				level_matrix[i][j][0] = 1;
-				level_matrix[i][j][1] = 1;
-				level_matrix[i][j][2] = 1;
 				var t1 = CVmObj(wall_mesh);
 				var t2 = CVmObj(wall_mesh);
 				var t3 = CVmObj(wall_mesh);
 				t1.setposition(j, 0.0, i);
-				aadd(wall_obj_mat, t1);
+				aadd(level_obj, t1);
 				t2.setposition(j, 1.0, i);
-				aadd(wall_obj_mat, t2);
+				aadd(level_obj, t2);
 				t3.setposition(j, 2.0, i);
-				aadd(wall_obj_mat, t3);
+				aadd(level_obj, t3);
 			} else if (f[i][j] == "2"){
-				level_matrix[i][j][0] = 1;
-				level_matrix[i][j][1] = 1;
 				var t1 = CVmObj(wall_mesh);
 				var t2 = CVmObj(wall_mesh);
 				t1.setposition(j, 0.0, i);
-				aadd(wall_obj_mat, t1);
+				aadd(level_obj, t1);
 				t2.setposition(j, 1.0, i);
-				aadd(wall_obj_mat, t2);
+				aadd(level_obj, t2);
 			} else if (f[i][j] == "1"){
-				level_matrix[i][j][0] = 1;
 				var t1 = CVmObj(wall_mesh);
 				t1.setposition(j, 0.0, i);
-				aadd(wall_obj_mat, t1);	
+				aadd(level_obj, t1);	
 			}
 		}
 	}
@@ -84,7 +64,7 @@ function level::init(level_textfile){
 	floor_material.setTexture(floor_texture);
 	floor_material.changetextureparams(VR_U_TILING,4);
 	floor_material.changetextureparams(VR_V_TILING,4);
-	
+
 	floor_mesh = CVmNewMesh(VRP_BOX);
 	floor_mesh.scale(num_columns, 1.0 ,num_rows);
 	floor_mesh.translate(0.0, -1.0, 0.0);
@@ -93,7 +73,7 @@ function level::init(level_textfile){
 }
 
 function level::draw(){
-	foreach (var t in wall_obj_mat)
+	foreach (var t in level_obj)
 		t.draw();
 	floor_mesh.draw();
 }
