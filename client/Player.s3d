@@ -15,8 +15,11 @@ class Player{
 	var collision_obj;
 	var position;
 	var angle;
+	var left_strafe;
+	var right_strafe;
 	var direction;
 	var step;
+	var side_step;
 	var frame_step;
 	var current_frame;
 	var run;
@@ -28,14 +31,10 @@ class Player{
 	
 	init(col);
 	draw();
-	setposition(pos);
-	setrotation(angle);
+	setPosition(pos);
+	setRotation(angle);
 	update(level_obj_l);
 };
-
-function Player::setrotation(angle){
-	obj.setrotation(angle * 180.0 / PI, 0, 1, 0);
-}
 
 function Player::init(col){
 	color = col;
@@ -46,7 +45,7 @@ function Player::init(col){
 	collision_box = CVmNewMesh(VRP_CYLINDER);
 	collision_box.scale(COLLISION_SCALE);
 	var collision_box_transparent = CVmMaterial();
-	collision_box_transparent.transparency = 1.0;
+	collision_box_transparent.transparency = 0.0; //Set the collision box transparent
 	collision_box.setMaterial(collision_box_transparent);
 	weapon_mesh = CVmNewMesh("rocketl.aam");
 	weapon_mesh.scale(sf1);
@@ -65,7 +64,8 @@ function Player::init(col){
 	
 	angle = 0;
 	direction = [0,0,1];
-	step = 0.1;
+	step = 0.1;	
+	side_step = 0.05;
 	frame_step = 1.0;
 	current_frame = SWAT_START_WALK;
 	run = 1;
@@ -83,47 +83,71 @@ function Player::draw(){
 		my_bullet.draw();
 }
 
-function Player::setposition(pos){
+function Player::setPosition(pos){
 	position = pos;
-	obj.setposition(position);
-	collision_obj.setposition(position + [-Z_COLLISION_OFF, 0, -X_COLLISION_OFF]);
+	obj.setPosition(position);
+	collision_obj.setPosition(position + [-Z_COLLISION_OFF, 0, -X_COLLISION_OFF]);
+}
+
+function Player::setRotation(angle){
+	obj.setRotation(angle * 180.0 / PI, 0, 1, 0);
 }
 
 function Player::update(level_obj_l){
 	var old_position = position;
 	
 	if (keyPressed(VK_SHIFT)){
-		run = 2;
+		run = 1.5;
 	} else {
 		run = 1;
 	}
 	
-	if (keyPressed(VK_RIGHT))
+	if (keyPressed("e"))
 		angle -= 0.01;
-	else if (keyPressed(VK_LEFT))
+	else if (keyPressed("q"))
 		angle += 0.01;
 	
 	direction = [sin(angle), 0, cos(angle)];
 	
-	if (keyPressed(VK_UP)){
-		position += (direction * step * run);
+	var angle_r = angle-(PI/2);
+	var angle_l = angle+(PI/2);
+	right_strafe = [sin(angle_r), 0, cos(angle_r)];
+	left_strafe = [sin(angle_l), 0, cos(angle_l)];
+	
+	var strafe = 1;	
+	if (keyPressed("d")){
+		strafe = 2;
+		position -= (right_strafe * side_step);
+	} else if (keyPressed("a")){
+		strafe = 2;
+		position -= (left_strafe * side_step);
+	}
+	// No else if because of diagonal movement	
+	if (keyPressed("w")){
+		position += (direction * (step / strafe) * run);
 		current_frame += frame_step;
 		if (current_frame == SWAT_END_WALK){
 			current_frame = SWAT_START_WALK + 1;
 			step_fx.play();
 		}		
-	}		
-	else if (keyPressed(VK_DOWN)){
-		position -= (direction * step);
+	} else if (keyPressed("s")){
+		position -= (direction * (step / strafe));
 		current_frame -= frame_step;
-		if(current_frame == SWAT_START_WALK)
+		if(current_frame == SWAT_START_WALK){
 			current_frame = SWAT_END_WALK - 1;
-			step_fx.play();		
+			step_fx.play();
+		}
+	} else if (strafe == 2){ // Manage animation for strafing only
+		current_frame += frame_step;
+		if (current_frame == SWAT_END_WALK){
+			current_frame = SWAT_START_WALK + 1;
+			step_fx.play();
+		}
 	}
-
+	
 		
-	setrotation(angle);
-	setposition(position);
+	setRotation(angle);
+	setPosition(position);
 	
 	var i = int(position.z);
 	var j = int(position.x);
