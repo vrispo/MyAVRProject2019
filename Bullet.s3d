@@ -20,7 +20,7 @@ function bullet::init(pos,dir){
 }
 
 function bullet::update(){
-	position += direction*speed;
+	position += direction * speed;
 	obj.setposition(position);
 }
 

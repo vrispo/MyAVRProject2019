@@ -26,10 +26,10 @@ function level::init(level_textfile){
 	var num_rows = len(f);
 	var num_columns = len(f[0]);
 	level_matrix = array(num_rows);
-	for(var i=0; i<num_rows ; i++){
-		level_matrix[i]= array(num_columns);
-		for(var j=0; j<num_columns; j++){
-			if(f[i][j]== "*"){
+	for(var i = 0; i < num_rows; i++){
+		level_matrix[i] = array(num_columns);
+		for(var j = 0; j < num_columns; j++){
+			if(f[i][j] == "*"){
 				level_matrix[i][j] = 1;
 				var t = CVmObj(wall_mesh);
 				t.setposition(j, 0.0, i);

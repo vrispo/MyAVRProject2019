@@ -2,31 +2,26 @@
 #include <Script3d.h>
 #include <Camera.s3d.h>
 
-#include "Player.s3d"
+#include "player.s3d"
 #include "Level.s3d"
+
+#define MAX_PLAYERS 2
 
 /* Set global scene parameters */
 SET SCENE_FOV  = 60;
 SET SCENE_NEAR = 0.5;
 SET SCENE_FAR  = 1000;
 
-
 // TODO: put your global variables here
-//var level_matrix;
+
 var local_matrix;
-/* level */
 
-var mylevel;
+var my_level;
 
-/*bullet */
-
-/*player */
-
-var myplayer;
-var myplayer2;
+var aplayer = array(MAX_PLAYERS);
 
 /* Camera globals */
-var CamPos = [0.0, 5.0, 30.0]; 	// camera position
+var CamPos = [2.0, 3.0, 20.0]; 	// camera position
 
 /* Light globals */
 var Light0;
@@ -58,17 +53,13 @@ function OnInit(params)
 	Light0.Enable();	
 
 	// TODO: put your initialization code here
-	mylevel = level();
-	mylevel.init("level.txt");
-	local_matrix=mylevel.__Get("level_matrix");
+	my_level = level();
+	my_level.init("level.txt");
+	local_matrix = my_level.__Get("level_matrix");
 	
-	myplayer = player();
-	myplayer.init([1,0,0],mylevel);
-	myplayer.setposition([2,0,2]);
-	
-	myplayer2 = player();
-	myplayer2.init([0,0,1]);
-	myplayer2.setposition([2,0,6]);
+	aplayer[0] = player();
+	aplayer[0].init([1,0,0],my_level);
+	aplayer[0].setposition([2,0,2]);
 }
 
 function OnFrame()
@@ -76,17 +67,15 @@ function OnFrame()
 	/* manage camera */
 	CameraMoveMouse();
 	
-	myplayer.update(local_matrix);
-	myplayer2.update(local_matrix);
+	aplayer[0].update(local_matrix);
 	
 	SceneBegin();
 
-	DrawGrid([0.5, 0.5, 0.5], 100);
+	//DrawGrid([0.5, 0.5, 0.5], 100);
 
 	// TODO: put your drawing code here
-	mylevel.draw();
-	myplayer.draw();
-	myplayer2.draw();
+	my_level.draw();
+	aplayer[0].draw();
 	SceneEnd();
 }
 
