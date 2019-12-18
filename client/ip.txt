@@ -7,7 +7,7 @@ Scheda Ethernet Ethernet:
    Stato supporto. . . . . . . . . . . . : Supporto disconnesso
    Suffisso DNS specifico per connessione: 
 
-Scheda LAN wireless Connessione alla rete locale (LAN)* 1:
+Scheda Ethernet Ethernet 2:
 
    Stato supporto. . . . . . . . . . . . : Supporto disconnesso
    Suffisso DNS specifico per connessione: 
@@ -17,15 +17,15 @@ Scheda LAN wireless Connessione alla rete locale (LAN)* 2:
    Stato supporto. . . . . . . . . . . . : Supporto disconnesso
    Suffisso DNS specifico per connessione: 
 
-Scheda LAN wireless Wi-Fi:
-
-   Suffisso DNS specifico per connessione: 
-   Indirizzo IPv6 locale rispetto al collegamento . : fe80::532:3404:ebbb:88ce%18
-   Indirizzo IPv4. . . . . . . . . . . . : 192.168.1.130
-   Subnet mask . . . . . . . . . . . . . : 255.255.255.0
-   Gateway predefinito . . . . . . . . . : 192.168.1.1
-
-Scheda Ethernet Connessione di rete Bluetooth:
+Scheda LAN wireless Connessione alla rete locale (LAN)* 12:
 
    Stato supporto. . . . . . . . . . . . : Supporto disconnesso
    Suffisso DNS specifico per connessione: 
+
+Scheda LAN wireless Wi-Fi:
+
+   Suffisso DNS specifico per connessione: sssup.it
+   Indirizzo IPv6 locale rispetto al collegamento . : fe80::f9dd:1592:c8cd:8b25%15
+   Indirizzo IPv4. . . . . . . . . . . . : 10.1.194.150
+   Subnet mask . . . . . . . . . . . . . : 255.255.240.0
+   Gateway predefinito . . . . . . . . . : 10.1.192.1

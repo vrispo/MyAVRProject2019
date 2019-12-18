@@ -10,7 +10,7 @@ class bullet{
 };
 
 function bullet::init(pos,dir){
-	position = pos +[0,1,0];
+	position = pos + [0,1,0];
 	direction = dir;
 	speed = 0.2;
 	mesh = cvmNewMesh(VRP_BOX);

@@ -35,15 +35,13 @@ function DrawGrid(col, size);
 
 
 
-function OnDownload()
-{
+function OnDownload(){
 	// TODO: download your resources here
 	// E.g.: FileDownload("resource.ext");
 	FileDownload("XVRResources.zip");
 }
 
-function OnInit(params)
-{
+function OnInit(params){
 	/* initialize camera */
 	CameraGetCurrent().SetPosition(CamPos);
 
@@ -90,15 +88,13 @@ function OnFrame(){
 
 
 
-function DownloadReady(RequestID)
-{
+function DownloadReady(RequestID){
 	// TODO
 }
 
 
 
-function OnTimer()
-{
+function OnTimer(){
 	// TODO:
 }
 
@@ -112,25 +108,21 @@ function OnError(){
 }
 
 
-function OnExit()
-{
+function OnExit(){
 	// TODO: put your cleanup code here
 }
 
 
 
 // Camera manager (using mouse)
-function CameraMoveMouse()
-{	
-
+function CameraMoveMouse(){	
 	CameraMoveMouse_MBL_LC();
 
 }
 
 
 
-function DrawGrid(col, size)
-{
+function DrawGrid(col, size){
 	/* let's not mess up current OpenGL status */
 	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
 	
