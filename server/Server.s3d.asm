@@ -1,0 +1,51 @@
+0:	PUSHN	0		
+1:	CALLX	5 :CVMMOUSE		0
+2:	POP  			G0:MOUSE
+3:	CALLX	1 :CVMJOYSTICK		0
+4:	POP  			G1:JOYSTICK
+5:	CALLX	2 :CVMMMAVI		0
+6:	POP  			G2:MMAVI
+7:	CALLX	4 :CVMMMMP3		0
+8:	POP  			G3:MMMP3
+9:	CALLX	3 :CVMMMMIDI		0
+10:	POP  			G4:MMMIDI
+11:	RET  			
+12:	PUSHN	0		
+13:	RET  	Void		
+14:	PUSHN	0		
+15:	PUSH 	<cStr0 "">		
+16:	CALLX	9 :SETLOCALDIR		1
+17:	POPN 	2		
+18:	PUSH 	<cStr1 "../UtilityDll/Release/UtilityDll.dll">		
+19:	CALLX	0 :CVMEXTERNDLL		1
+20:	POP  			G6:TESTDLL
+21:	POPN 	1		
+22:	PUSH 	<cStr2 "get_IPaddress">		
+23:	PUSH 	4		
+24:	CALLM	G6:TESTDLL	m_0	2
+25:	POPN 	3		
+26:	CALLM	G6:TESTDLL	m_1	0
+27:	POP  			G5:MY_IP
+28:	PUSH 	<cStr3 "\n">		
+29:	CALLX	6 :OUTPUTLN		1
+30:	POPN 	2		
+31:	PUSH 	G5:MY_IP		
+32:	CALLX	6 :OUTPUTLN		1
+33:	POPN 	2		
+34:	RET  	Void		
+35:	PUSHN	0		
+36:	CALLX	7 :SCENEBEGIN		0
+37:	POPN 	1		
+38:	CALLX	8 :SCENEEND		0
+39:	POPN 	1		
+40:	RET  	Void		
+41:	PUSHN	0		
+42:	RET  	Void		
+43:	PUSHN	0		
+44:	RET  	Void		
+45:	PUSHN	0		
+46:	RET  	Void		
+47:	PUSHN	0		
+48:	RET  	Void		
+49:	PUSHN	0		
+50:	RET  	Void		

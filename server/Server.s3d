@@ -7,6 +7,7 @@ SET SCENE_NEAR = 0.5;
 SET SCENE_FAR  = 1000;
 
 // TODO: put your global variables here
+var my_ip;
 
 function OnDownload(){
 	// TODO: download your resources here
@@ -15,6 +16,13 @@ function OnDownload(){
 
 function OnInit(params){
 	// TODO: put your initialization code here
+	SetLocalDir("");	
+	GLOBAL var TestDLL = CVmExternDLL( "../UtilityDll/Release/UtilityDll.dll" );
+	TestDLL.__AddFunction( C_PCHAR , "get_IPaddress");
+	my_ip = TestDLL.get_IPaddress();
+	
+	Outputln("\n");
+	Outputln(my_ip);
 }
 
 function OnFrame(){

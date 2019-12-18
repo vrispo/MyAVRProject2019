@@ -13,6 +13,7 @@ SET SCENE_NEAR = 0.5;
 SET SCENE_FAR  = 1000;
 
 // TODO: put your global variables here
+var my_ip;
 
 var level_obj_l;
 
@@ -52,13 +53,23 @@ function OnInit(params)
 	Light0.SetDiffuse(1, 1, 1);
 	Light0.Enable();	
 
-	// TODO: put your initialization code here
+	// TODO: put your initialization code here	
 	my_level = level();
 	my_level.init("level1.txt");
 	level_obj_l = my_level.__Get("level_obj");
 	
 	aplayer[0] = player();
 	aplayer[0].init([1,0,0], [2,0,2]);
+	
+	var dir=GetCurrentDir();
+	SetLocalDir("");	
+	GLOBAL var TestDLL = CVmExternDLL( "../UtilityDll/Release/UtilityDll.dll" );
+	TestDLL.__AddFunction( C_PCHAR , "get_IPaddress");
+	my_ip = TestDLL.get_IPaddress();
+	SetLocalDir(dir);
+	
+	Outputln("\n");
+	Outputln(my_ip);
 }
 
 function OnFrame(){
