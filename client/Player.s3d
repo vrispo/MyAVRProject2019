@@ -2,7 +2,7 @@
 
 #define SWAT_START_WALK 16
 #define SWAT_END_WALK 48
-#define COLLISION_SCALE 0.90, 1.6, 0.90
+#define COLLISION_SCALE 0.80, 1.6, 0.80
 #define Z_COLLISION_OFF 0.0
 #define X_COLLISION_OFF 0.0
 
@@ -28,16 +28,18 @@ class Player{
 	var color;
 	var shoot_fx;
 	var step_fx;
+	var is_colliding;
 	
-	init(col);
+	init(col, pos);
 	draw();
 	setPosition(pos);
 	setRotation(angle);
 	update(level_obj_l);
+	jump();
+	wasd();
 };
 
-function Player::init(col){
-	color = col;
+function Player::init(col, pos){
 	lower_mesh = CVmNewMesh("swat_lower.aam");
 	var sf1 = lower_mesh.normalize(1);
 	upper_mesh = CVmNewMesh("swat_upper.aam");
@@ -45,7 +47,7 @@ function Player::init(col){
 	collision_box = CVmNewMesh(VRP_CYLINDER);
 	collision_box.scale(COLLISION_SCALE);
 	var collision_box_transparent = CVmMaterial();
-	collision_box_transparent.transparency = 0.0; //Set the collision box transparent
+	collision_box_transparent.transparency = 0.5; //Set the collision box transparent
 	collision_box.setMaterial(collision_box_transparent);
 	weapon_mesh = CVmNewMesh("rocketl.aam");
 	weapon_mesh.scale(sf1);
@@ -60,15 +62,18 @@ function Player::init(col){
 	obj.addchild(weapon_obj);
 	collision_obj.setpivotpoint(Z_COLLISION_OFF, 0, X_COLLISION_OFF);
 	
-	obj.modulatematerials(color);	
-	
 	angle = 0;
+	position = pos;
 	direction = [0,0,1];
 	step = 0.1;	
 	side_step = 0.05;
 	frame_step = 1.0;
 	current_frame = SWAT_START_WALK;
 	run = 1;
+	is_colliding = false;
+	color = col;
+	
+	obj.modulatematerials(color);	
 	
 	has_shot = false;
 	shoot_fx = CVmVRawAV("shoot.wav");
@@ -84,16 +89,20 @@ function Player::draw(){
 }
 
 function Player::setPosition(pos){
-	position = pos;
-	obj.setPosition(position);
-	collision_obj.setPosition(position + [-Z_COLLISION_OFF, 0, -X_COLLISION_OFF]);
+	obj.setPosition(pos);
+	collision_obj.setPosition(pos + [-Z_COLLISION_OFF, 0, -X_COLLISION_OFF]);
 }
 
 function Player::setRotation(angle){
 	obj.setRotation(angle * 180.0 / PI, 0, 1, 0);
+	collision_obj.setRotation(angle * 180.0 / PI, 0, 1, 0);
 }
 
 function Player::update(level_obj_l){
+	var i = int(position.z);
+	var j = int(position.x);
+	var k = int(position.y);
+	var collision_check = false;		
 	var old_position = position;
 	
 	if (keyPressed(VK_SHIFT)){
@@ -109,8 +118,8 @@ function Player::update(level_obj_l){
 	
 	direction = [sin(angle), 0, cos(angle)];
 	
-	var angle_r = angle-(PI/2);
-	var angle_l = angle+(PI/2);
+	var angle_r = angle+(PI/2);
+	var angle_l = angle-(PI/2);
 	right_strafe = [sin(angle_r), 0, cos(angle_r)];
 	left_strafe = [sin(angle_l), 0, cos(angle_l)];
 	
@@ -145,25 +154,20 @@ function Player::update(level_obj_l){
 		}
 	}
 	
-		
 	setRotation(angle);
 	setPosition(position);
 	
-	var i = int(position.z);
-	var j = int(position.x);
-	var k = int(position.y);
-	var collision_check = false;
 	foreach (var t in level_obj_l)
 		collision_check = collision_check || collision_obj.isCollidingBBox(t);
 	if (collision_check)
-		position = old_position;
+		setPosition(old_position);			
 		
-	if (keyPressed(VK_SPACE) && !has_shot){
+	/*if (keyPressed(VK_SPACE) && !has_shot){
 		my_bullet = bullet();
 		my_bullet.init(position, direction);
 		shoot_fx.play();
 		has_shot = true;
 	}
 	if (has_shot)
-		my_bullet.update();
+		my_bullet.update();*/
 }

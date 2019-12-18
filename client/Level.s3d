@@ -66,7 +66,7 @@ function level::init(level_textfile){
 	floor_material.changetextureparams(VR_V_TILING,4);
 
 	floor_mesh = CVmNewMesh(VRP_BOX);
-	floor_mesh.scale(num_columns, 1.0 ,num_rows);
+	floor_mesh.scale(num_columns, 1.0 , num_rows-3);
 	floor_mesh.translate(0.0, -1.0, 0.0);
 	floor_mesh.setmaterial(floor_material);
 	floor_mesh.modulatematerials(0,1,0,1); //green completely opaque
