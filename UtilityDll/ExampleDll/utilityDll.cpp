@@ -41,3 +41,8 @@ extern "C" __declspec(dllexport) char * get_IPaddress(){
 	}
 	return "";
 }
+
+extern "C" __declspec(dllexport) int open_idprog() {
+	int ret = system("GetId.exe");
+	return ret;
+}

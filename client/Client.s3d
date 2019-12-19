@@ -33,13 +33,13 @@ var PosL = [16.0, 100.0, 16.0];	// default light position
 function CameraMoveMouse();
 function DrawGrid(col, size);
 
-
-
 function OnDownload(){
 	// TODO: download your resources here
 	// E.g.: FileDownload("resource.ext");
 	FileDownload("XVRResources.zip");
 }
+
+var my_id;
 
 function OnInit(params){
 	/* initialize camera */
@@ -63,11 +63,16 @@ function OnInit(params){
 	SetLocalDir("");	
 	GLOBAL var TestDLL = CVmExternDLL( "../UtilityDll/Release/UtilityDll.dll" );
 	TestDLL.__AddFunction( C_PCHAR , "get_IPaddress");
-	my_ip = TestDLL.get_IPaddress();
-	SetLocalDir(dir);
-	
+	TestDLL.__AddFunction( C_INT , "open_idprog");
 	Outputln("\n");
-	Outputln(my_ip);
+	Outputln(TestDLL.open_idprog());
+	my_id = fileread("userid.txt");
+	outputln("id = "+my_id);
+	my_ip = TestDLL.get_IPaddress();
+	Outputln("\n");
+	Outputln("IP:"+my_ip);
+	
+	SetLocalDir(dir);
 }
 
 function OnFrame(){

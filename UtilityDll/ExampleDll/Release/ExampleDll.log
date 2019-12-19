@@ -2,13 +2,13 @@
   stdafx.cpp
   dllmain.cpp
   utilityDll.cpp
-c:\users\veron\source\repos\utilitydll\exampledll\utilitydll.cpp(31): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+c:\users\veron\xvrworkspace\myavrproject2019\utilitydll\exampledll\utilitydll.cpp(31): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\string.h(133): note: vedere la dichiarazione di 'strcpy'
-     Creazione della libreria C:\Users\veron\source\repos\UtilityDll\Release\UtilityDll.lib e dell'oggetto C:\Users\veron\source\repos\UtilityDll\Release\UtilityDll.exp
+     Creazione della libreria C:\Users\veron\xvrWorkspace\MyAVRProject2019\UtilityDll\Release\UtilityDll.lib e dell'oggetto C:\Users\veron\xvrWorkspace\MyAVRProject2019\UtilityDll\Release\UtilityDll.exp
   Generazione codice in corso...
-c:\users\veron\source\repos\utilitydll\exampledll\utilitydll.cpp(33): warning C4700: utilizzata variabile locale 'to_ret' non inizializzata
-  153 of 158 functions (96.8%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
+c:\users\veron\xvrworkspace\myavrproject2019\utilitydll\exampledll\utilitydll.cpp(33): warning C4700: utilizzata variabile locale 'to_ret' non inizializzata
+  154 of 159 functions (96.9%) were compiled, the rest were copied from previous compilation.
+    1 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
   Generazione codice terminata
-  ExampleDll.vcxproj -> C:\Users\veron\source\repos\UtilityDll\Release\UtilityDll.dll
+  ExampleDll.vcxproj -> C:\Users\veron\xvrWorkspace\MyAVRProject2019\UtilityDll\Release\UtilityDll.dll
