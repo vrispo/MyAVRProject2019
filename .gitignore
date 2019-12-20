@@ -1,0 +1,12 @@
+
+client/ip.txt
+
+client/userid.txt
+
+*.dbg
+
+*.bin
+
+*.asm
+
+client/Client.s3d
