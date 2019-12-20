@@ -93,7 +93,7 @@ function OnInit(params){
 	ip_elem = split(my_ip + "", ".");
 	broadcast_address = ip_elem[0] + "." + ip_elem[1] + "." + ip_elem[2] + ".255";
 	outputln("broadcast = " + broadcast_address);
-	server_ip = broadcast_address;
+	
 	SetCurrentDir(CurDir);
 	
 	net_channel= NetCreateChannel(CLIENT_PORT, "0.0.0.0", VR_NO_BLOCKING);
@@ -104,11 +104,10 @@ function OnInit(params){
 	PDU[1] = my_id;
 	PDU[2] = my_ip;
 	mysend(broadcast_address, PDU);
-	outputln("sended connect request");
 	
 	/* wait for the server response */
 	var address1 = "................";
-	var received_data;
+	var received_data = NetVarReceiveFrom(net_channel, &address1);
 	var recv = false;
 	
 	var old_time = getTime();//returns time in milliseconds
@@ -116,7 +115,6 @@ function OnInit(params){
 		var current_time = getTime();
     	if(current_time-old_time>1000){
     		mysend(server_ip, PDU);
-    		outputln("send connect request again");
     		old_time = getTime();
 		} 
 		received_data = NetVarReceiveFrom(net_channel, &address1);	
@@ -138,16 +136,14 @@ function OnInit(params){
 				for(var i = 0 ; i < MAX_PLAYERS ; i++){
 					if(i != my_index)
 						aplayer[i].init([0, 1, 0], [30, 0, 30], level_obj_l);
-				}
-				recv = true;				
-			}						
+				}				
+			}			
 		}				
-    }while( recv == false );
+    }while(recv == false );
 	/* send ack */
 	PDU = array(2);
 	PDU[0] = ACK;
 	PDU[1] = OK;
-	outputln("try to send ack to" + server_ip);
 	mysend(server_ip, PDU);    	
 }
 
