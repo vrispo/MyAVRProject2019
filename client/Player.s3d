@@ -7,10 +7,12 @@
 #define SIDE_STEP 0.05
 #define FRAME_STEP 1.0
 #define JUMP_HEIGHT 1.5
+#define Y_OFFSET [0.0, 0.1, 0.0]
 
 var shoot_fx;
 var step_fx;
 var start_fx;
+var level_obj_array;
 
 class Player{
 	var lower_mesh;
@@ -36,17 +38,21 @@ class Player{
 	var has_shot;
 	var color;
 	
-	init(col, pos);
+	init(col, pos, level_obj_l);
 	draw();
+	isColliding();
 	setPosition(pos);
+	getYCollision();
 	setRotation(angle);
-	update(level_obj_l);
+	update();
 	wasd();
 	jump();
-	update_y();
+	updateY();
 };
 
-function Player::init(col, pos){
+function Player::init(col, pos, level_obj_l){
+	level_obj_array = level_obj_l;
+	
 	lower_mesh = CVmNewMesh("swat_lower.aam");
 	var sf1 = lower_mesh.normalize(1);
 	upper_mesh = CVmNewMesh("swat_upper.aam");
@@ -96,6 +102,13 @@ function Player::draw(){
 		my_bullet.draw();
 }
 
+function Player::isColliding(){
+	foreach (var t in level_obj_array)
+		if (collision_obj.isCollidingBBox(t))
+			return true;
+	return false;
+}
+
 function Player::wasd(){
 	var strafe = 1;	
 	if (keyPressed("d")){
@@ -127,18 +140,19 @@ function Player::wasd(){
 			step_fx.play();
 		}
 	}
-		
-	update_y();
+	
+	if (!getYCollision()) {
+		updateY();
+	}
 }
 
 function Player::jump(){
 	is_jumping = true;
 	is_ascending = true;
 	jump_target = position.y + JUMP_HEIGHT;
-	update_y();
 }
 
-function Player::update_y(){
+function Player::updateY(){
 	if (position.y < jump_target && is_ascending){
 		position += ([0.0, 0.1, 0.0]);
 	} else {
@@ -158,17 +172,30 @@ function Player::setPosition(pos){
 	collision_obj.setPosition(pos);
 }
 
+function Player::getYCollision(){
+	var check = false;
+	
+	collision_obj.setPosition(position - Y_OFFSET);
+	
+	foreach (var t in level_obj_array)
+		check = check || collision_obj.isCollidingBBox(t);
+		
+	collision_obj.setPosition(position + Y_OFFSET);
+	
+	return check;
+}
+
 function Player::setRotation(angle){
 	obj.setRotation(angle * 180.0 / PI, 0, 1, 0);
 }
 
-function Player::update(level_obj_l){
+function Player::update(){
 	var i = int(position.z);
 	var j = int(position.x);
 	var k = int(position.y);
 	var collision_check = false;
 	
-	foreach (var t in level_obj_l)
+	foreach (var t in level_obj_array)
 		collision_check = collision_check || collision_obj.isCollidingBBox(t);
 	if (!collision_check)
 		old_position = position;
@@ -194,11 +221,13 @@ function Player::update(level_obj_l){
 	wasd();
 	if (keyPressed(VK_SPACE) && !is_jumping)
 		jump();
+	if (is_jumping)
+		updateY();
 		
 	setRotation(angle);
 	setPosition(position);
 	
-	foreach (var t in level_obj_l)
+	foreach (var t in level_obj_array)
 		collision_check = collision_check || collision_obj.isCollidingBBox(t);
 	if (collision_check){
 		if (is_jumping){
