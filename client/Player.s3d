@@ -17,6 +17,7 @@ class Player{
 	var weapon_mesh;
 	var obj;
 	var collision_obj;
+	var old_position;
 	var position;
 	var angle;
 	var strafe;
@@ -67,7 +68,8 @@ function Player::init(col, pos){
 	collision_obj.setpivotpoint(Z_COLLISION_OFF, 0, X_COLLISION_OFF);
 	
 	angle = 0;
-	position = pos;
+	position = pos;	
+	old_position = position;
 	direction = [0,0,1];
 	step = 0.1;
 	side_step = 0.05;
@@ -147,7 +149,11 @@ function Player::update(level_obj_l){
 	var j = int(position.x);
 	var k = int(position.y);
 	var collision_check = false;
-	var old_position = position;
+	
+	foreach (var t in level_obj_l)
+		collision_check = collision_check || collision_obj.isCollidingBBox(t);
+	if (!collision_check)
+		old_position = position;
 	
 	if (keyPressed(VK_SHIFT)){
 		run = 1.5;
@@ -162,8 +168,8 @@ function Player::update(level_obj_l){
 	
 	direction = [sin(angle), 0, cos(angle)];
 	
-	var angle_r = angle+(PI/2);
-	var angle_l = angle-(PI/2);
+	var angle_r = angle + (PI / 2);
+	var angle_l = angle - (PI / 2);
 	right_strafe = [sin(angle_r), 0, cos(angle_r)];
 	left_strafe = [sin(angle_l), 0, cos(angle_l)];
 	
@@ -176,8 +182,12 @@ function Player::update(level_obj_l){
 	
 	foreach (var t in level_obj_l)
 		collision_check = collision_check || collision_obj.isCollidingBBox(t);
-	if (collision_check)
-		position = old_position;
+	if (collision_check){
+		position = old_position;	
+		setPosition(position);
+	}
+	
+	
 		
 	/*if (keyPressed(VK_SPACE) && !has_shot){
 		my_bullet = bullet();
