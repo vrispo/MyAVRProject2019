@@ -10,3 +10,5 @@ client/userid.txt
 *.asm
 
 client/Client.s3d
+*.txt
+server/ip.txt

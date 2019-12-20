@@ -82,6 +82,7 @@ function OnTimer(){
 			var id_req = received_data[1];
 			var ip_req = received_data[2];
 			
+			var PDU = array(5);
 			if(active_connection < MAX_PLAYERS){
 				//find the first available place and give an OK response
 				var i = 0;
@@ -91,7 +92,6 @@ function OnTimer(){
 				online_player[i].connection(id_req, ip_req);
 				outputln(online_player[i].toString());
 				
-				var PDU = array(5);
 				PDU[0] = CONNECT_RESP_PDU;
 				PDU[1] = OK; //response
 				PDU[2] = my_ip;
@@ -101,7 +101,6 @@ function OnTimer(){
 			}
 			else{
 				//send no connection available response
-				var PDU = array(5);
 				PDU[0] = CONNECT_RESP_PDU;
 				PDU[1] = ERR;
 				PDU[2] = my_ip;
@@ -109,15 +108,31 @@ function OnTimer(){
 				PDU[4] = null; //pos
 				mysend(ip_req, PDU); 
 			}
+			var recv = false;
+			var old_time = getTime();//returns time in milliseconds
+			do{		
+				var current_time = getTime();
+		    	if(current_time-old_time>1000){
+		    		mysend(ip_req, PDU);
+		    		old_time = getTime();
+				} 
+				received_data = NetVarReceiveFrom(net_channel, &address1);	
+				if(received_data != null)
+					if(received_data[0] == ACK)
+						recv = true;;				
+		    }while(recv == false );							
 		}
 		
 		if(received_data[0] == DISCONNECT_REQ_PDU){
 			var ip_req = received_data[1];
 			var id_req = received_data[2];
 			var index_req = received_data[3];
+			outputln("disconnection request " + ip_req + " " + id_req);
 			
-			if((online_player[index_req].isConnected == true) && (online_player[index_req].__Get("id") == id_req))
+			if((online_player[index_req].isConnected() == true) && (online_player[index_req].__Get("id") == id_req)){
 				online_player[index_req].Disconnection();
+				outputln("disconnected");			
+			}
 			
 			/* send ack */
 			var PDU = array(2);
