@@ -1,7 +1,20 @@
 /* Include s3d symbols */
 #include <Script3d.h>
 
+#include "Player.s3d"
+#include "Networking.s3d"
+
+#define MAX_PLAYERS 4
+
 #define CONNECT_REQ_PDU 0
+#define CONNECT_RESP_PDU 1
+
+#define OK 1
+#define ERR -1
+
+#define CONSOLE_Y_0 0.96
+#define CONSOLE_X_0 0.02
+#define CONSOLE_SPACING 0.04
 
 /* Set global scene parameters */
 SET SCENE_FOV  = 60;
@@ -12,6 +25,11 @@ SET SCENE_FAR  = 1000;
 var my_ip;
 var net_channel;
 
+var active_connection;
+var online_player = array(4);
+var init_pos = {[2, 0, 2], [2, 0, 30], [30, 0, 30], [30, 0, 2]};
+
+
 function OnDownload(){
 	// TODO: download your resources here
 	// E.g.: FileDownload("resource.ext");
@@ -19,15 +37,21 @@ function OnDownload(){
 
 function OnInit(params){
 	// TODO: put your initialization code here
+	ConsoleColor([0,255,0,1]);
 	SetLocalDir("");	
 	GLOBAL var TestDLL = CVmExternDLL( "../UtilityDll/Release/UtilityDll.dll" );
 	TestDLL.__AddFunction( C_PCHAR , "get_IPaddress");
 	my_ip = TestDLL.get_IPaddress();
 	
 	Outputln("\n");
-	Outputln(my_ip);
+	//Outputln(my_ip);
 	
 	net_channel= NetCreateChannel(50023,"0.0.0.0",VR_NO_BLOCKING);
+	active_connection = 0;
+	for(var i=0 ; i<MAX_PLAYERS ; i++){
+		online_player[i] = Player();
+		online_player[i].init(i, init_pos[i]);
+	}
 }
 
 function OnFrame(){
@@ -35,7 +59,10 @@ function OnFrame(){
 	SceneBegin();
 
 	// TODO: put your drawing code here
-
+	ConsoleText(CONSOLE_X_0, CONSOLE_Y_0, "Server IP address: " + my_ip);
+	for(var i=0 ; i < MAX_PLAYERS ; i++){
+		ConsoleText(CONSOLE_X_0, (CONSOLE_Y_0 - 0.06 - CONSOLE_SPACING*i), online_player[i].toString());
+	}
 	SceneEnd();
 }
 
@@ -52,7 +79,34 @@ function OnTimer(){
 		if(received_data[0] == CONNECT_REQ_PDU){
 			var id_req = received_data[1];
 			var ip_req = received_data[2];
-			outputln("received: "+id_req+" "+ip_req);	
+			
+			if(active_connection < MAX_PLAYERS){
+				//find the first available place and give an OK response
+				var i = 0;
+				while(online_player[i].isConnected() == true)
+					i++;
+				active_connection++;
+				online_player[i].connection(id_req, ip_req);
+				outputln(online_player[i].toString());
+				
+				var PDU = array(5);
+				PDU[0] = CONNECT_RESP_PDU;
+				PDU[1] = OK; //response
+				PDU[2] = my_ip;
+				PDU[3] = i; //index
+				PDU[4] = online_player[i].getStartPosition(); //pos
+				mysend(ip_req, PDU);
+			}
+			else{
+				//send no connection available response
+				var PDU = array(5);
+				PDU[0] = CONNECT_RESP_PDU;
+				PDU[1] = ERR;
+				PDU[2] = my_ip;
+				PDU[3] = null; //index
+				PDU[4] = null; //pos
+				mysend(ip_req, PDU); 
+			}
 		}
 	}
 }

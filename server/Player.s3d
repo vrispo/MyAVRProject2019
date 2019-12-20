@@ -1,0 +1,53 @@
+/* Server side player class */
+
+class Player{
+	var index;
+	var id;
+	var ip;
+	var online;
+	var start_spawn_pos;
+	
+	init(i, pos);
+	isConnected();
+	getStartPosition();
+	Disconnection();
+	Connection(id_p, ip_p);
+	toString();
+};
+
+function Player :: init(i, pos){
+	index = i;
+	id = "";
+	ip = "";
+	online = false;
+	start_spawn_pos = pos;
+}
+
+function Player :: isConnected(){
+	return online;
+}
+
+function Player :: getStartPosition(){
+	return start_spawn_pos;
+}
+
+function Player :: Disconnection(){
+	online = false;
+	id = "";
+	ip = "";
+}
+
+function Player :: Connection(id_p, ip_p){
+	id = id_p;
+	ip = ip_p;
+	online = true;
+}
+
+function Player :: toString(){
+	var ret = "Index = " + str(index) + ", IP: " + ip + ", ID: "+ id + ", STATE: ";
+	if( online == true)
+		ret = ret + "online";
+	else
+		ret = ret + "offline";
+	return ret;
+}
