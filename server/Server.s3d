@@ -8,6 +8,8 @@
 
 #define CONNECT_REQ_PDU 0
 #define CONNECT_RESP_PDU 1
+#define DISCONNECT_REQ_PDU 2
+#define ACK 3
 
 #define OK 1
 #define ERR -1
@@ -107,6 +109,21 @@ function OnTimer(){
 				PDU[4] = null; //pos
 				mysend(ip_req, PDU); 
 			}
+		}
+		
+		if(received_data[0] == DISCONNECT_REQ_PDU){
+			var ip_req = received_data[1];
+			var id_req = received_data[2];
+			var index_req = received_data[3];
+			
+			if((online_player[index_req].isConnected == true) && (online_player[index_req].__Get("id") == id_req))
+				online_player[index_req].Disconnection();
+			
+			/* send ack */
+			var PDU = array(2);
+			PDU[0] = ACK;
+			PDU[1] = OK;
+			mysend(ip_req, PDU); 		
 		}
 	}
 }

@@ -6,9 +6,12 @@
 #include "player.s3d"
 #include "Level.s3d"
 
-#define MAX_PLAYERS 2
+#define MAX_PLAYERS 4
+
 #define CONNECT_REQ_PDU 0
 #define CONNECT_RESP_PDU 1
+#define DISCONNECT_REQ_PDU 2
+#define ACK 3
 
 #define OK 1
 #define ERR -1
@@ -24,15 +27,15 @@ var broadcast_address;
 var net_channel;
 var connected = false;
 
+var aplayer = array(MAX_PLAYERS);
+var online_player = array(MAX_PLAYERS);
+var my_index = 0;
+
 var my_ip;
 var server_ip;
 
 var level_obj_l;
-
 var my_level;
-
-var aplayer = array(MAX_PLAYERS);
-var my_index = 0;
 
 /* Camera globals */
 var CamPos = [2.0, 3.0, 20.0]; 	// camera position
@@ -67,9 +70,10 @@ function OnInit(params){
 	my_level.init("level1.txt");
 	level_obj_l = my_level.__Get("level_obj");
 	
-	for(var i=0 ; i < MAX_PLAYERS ; i++)
+	for(var i=0 ; i < MAX_PLAYERS ; i++){
 		aplayer[i] = player();
-	//aplayer[0].init([1,0,0], [2,0,2]);
+		online_player[i] = false;
+	}
 	
 	var CurDir = getcurrentdir();
 	SetCurrentDir(".");
@@ -117,16 +121,17 @@ function OnInit(params){
 				connected = true;
 				server_ip = received_data[2];
 				my_index = received_data[3];
-				aplayer[my_index].init([1, 0, 0], received_data[4]);
+				aplayer[my_index].init([1, 0, 0], received_data[4], level_obj_l);
+				online_player[my_index] = true;
 			}
 			else{
 				connected = false;
 				server_ip = received_data[2];
-				aplayer[my_index].init([1, 0, 0], [2, 0, 2]);				
+				aplayer[my_index].init([1, 0, 0], [2, 0, 2], level_obj_l);				
 			}
 			for(var i = 0 ; i < MAX_PLAYERS ; i++){
 				if(i != my_index)
-					aplayer[i].init([0, 1, 0], [30, 0, 30]);
+					aplayer[i].init([0, 1, 0], [30, 0, 30], level_obj_l);
 			}				
 		}
 	}
@@ -136,7 +141,7 @@ function OnFrame(){
 	/* manage camera */
 	CameraMoveMouse();
 	
-	aplayer[my_index].update(level_obj_l);
+	aplayer[my_index].update();
 	
 	SceneBegin();
 
@@ -144,6 +149,11 @@ function OnFrame(){
 
 	// TODO: put your drawing code here
 	my_level.draw();
+	for(var i=0 ; i < MAX_PLAYERS ; i++){
+		if((online_player[i] == true) && (i != my_index)){
+			aplayer[i].draw();
+		}		
+	}
 	aplayer[my_index].draw();
 	
 	if(connected == false){
@@ -181,6 +191,26 @@ function OnError(){
 
 function OnExit(){
 	// TODO: put your cleanup code here
+	/* Send request in broadcast to find server ip */
+	outputln("disconnession...");
+	var PDU = array(3);
+	PDU[0] = DISCONNECT_REQ_PDU;
+	PDU[1] = my_ip;
+	PDU[2] = my_index;
+	mysend(server_ip, PDU);
+	
+	/*aspetto l'ack */
+	var address1 = "................";
+	var received_data;
+	
+	var old_time = getTime();//returns time in milliseconds
+	while((received_data = NetVarReceiveFrom(net_channel, &address1) == null)||(received_data[0] != ACK)){		
+		var current_time = getTime();
+    	if(current_time-old_time>1000){
+    		mysend(server_ip, PDU);
+		}   	
+    }
+    outputln("disconnected!");
 }
 
 
