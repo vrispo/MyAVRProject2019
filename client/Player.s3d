@@ -3,8 +3,10 @@
 #define SWAT_START_WALK 16
 #define SWAT_END_WALK 48
 #define COLLISION_SCALE 0.80, 1.6, 0.80
-#define Z_COLLISION_OFF 0.0
-#define X_COLLISION_OFF 0.0
+#define FRONT_STEP 0.1
+#define SIDE_STEP 0.05
+#define FRAME_STEP 1.0
+#define JUMP_HEIGHT 1.5
 
 var shoot_fx;
 var step_fx;
@@ -24,13 +26,12 @@ class Player{
 	var left_strafe;
 	var right_strafe;
 	var direction;
-	var step;
-	var side_step;
 	var jump_step;
-	var frame_step;
+	var jump_target;
 	var current_frame;
 	var run;
 	var is_jumping;
+	var is_ascending;
 	var my_bullet;
 	var has_shot;
 	var color;
@@ -42,6 +43,7 @@ class Player{
 	update(level_obj_l);
 	wasd();
 	jump();
+	update_y();
 };
 
 function Player::init(col, pos){
@@ -65,20 +67,17 @@ function Player::init(col, pos){
 	obj.addchild(upper_obj);
 	obj.addchild(lower_obj);
 	obj.addchild(weapon_obj);
-	collision_obj.setpivotpoint(Z_COLLISION_OFF, 0, X_COLLISION_OFF);
 	
-	angle = 0;
+	angle = 0.0;
 	position = pos;	
 	old_position = position;
-	direction = [0,0,1];
-	step = 0.1;
-	side_step = 0.05;
-	jump_step = 0.5;
-	frame_step = 1.0;
+	direction = [0.0, 0.0 , 1.0];
 	current_frame = SWAT_START_WALK;
-	run = 1;
+	run = 1.0;
 	color = col;
+	jump_target = pos[1];
 	is_jumping = false;
+	is_ascending = false;
 	has_shot = false;
 	
 	obj.modulatematerials(color);	
@@ -101,43 +100,62 @@ function Player::wasd(){
 	var strafe = 1;	
 	if (keyPressed("d")){
 		strafe = 2;
-		position -= (right_strafe * side_step);
+		position -= (right_strafe * SIDE_STEP);
 	} else if (keyPressed("a")){
 		strafe = 2;
-		position -= (left_strafe * side_step);
+		position -= (left_strafe * SIDE_STEP);
 	}
 	// No else if because of diagonal movement	
 	if (keyPressed("w")){
-		position += (direction * (step / strafe) * run);
-		current_frame += frame_step;
+		position += (direction * (FRONT_STEP / strafe) * run);
+		current_frame += FRAME_STEP;
 		if (current_frame == SWAT_END_WALK){
 			current_frame = SWAT_START_WALK + 1;
 			step_fx.play();
 		}		
 	} else if (keyPressed("s")){
-		position -= (direction * (step / strafe));
-		current_frame -= frame_step;
+		position -= (direction * (FRONT_STEP / strafe));
+		current_frame -= FRAME_STEP;
 		if(current_frame == SWAT_START_WALK){
 			current_frame = SWAT_END_WALK - 1;
 			step_fx.play();
 		}
 	} else if (strafe == 2){ // Manage animation for strafing only
-		current_frame += frame_step;
+		current_frame += FRAME_STEP;
 		if (current_frame == SWAT_END_WALK){
 			current_frame = SWAT_START_WALK + 1;
 			step_fx.play();
 		}
 	}
+		
+	update_y();
 }
 
 function Player::jump(){
-	position += (direction * jump_step);
 	is_jumping = true;
+	is_ascending = true;
+	jump_target = position.y + JUMP_HEIGHT;
+	update_y();
+}
+
+function Player::update_y(){
+	if (position.y < jump_target && is_ascending){
+		position += ([0.0, 0.1, 0.0]);
+	} else {
+		is_ascending = false;
+		if (position.y > 0.0){			
+			position -= ([0.0, 0.1, 0.0]);
+		} else {
+			position.y = 0.0;
+			jump_target = 0.0;
+			is_jumping = false;
+		}
+	}
 }
 
 function Player::setPosition(pos){
 	obj.setPosition(pos);
-	collision_obj.setPosition(pos + [-Z_COLLISION_OFF, 0, -X_COLLISION_OFF]);
+	collision_obj.setPosition(pos);
 }
 
 function Player::setRotation(angle){
@@ -158,7 +176,7 @@ function Player::update(level_obj_l){
 	if (keyPressed(VK_SHIFT)){
 		run = 1.5;
 	} else {
-		run = 1;
+		run = 1.0;
 	}
 	
 	if (keyPressed("e"))
@@ -170,11 +188,11 @@ function Player::update(level_obj_l){
 	
 	var angle_r = angle + (PI / 2);
 	var angle_l = angle - (PI / 2);
-	right_strafe = [sin(angle_r), 0, cos(angle_r)];
-	left_strafe = [sin(angle_l), 0, cos(angle_l)];
+	right_strafe = [sin(angle_r), 0.0, cos(angle_r)];
+	left_strafe = [sin(angle_l), 0.0, cos(angle_l)];
 	
 	wasd();
-	if (keyPressed(VK_SPACE))
+	if (keyPressed(VK_SPACE) && !is_jumping)
 		jump();
 		
 	setRotation(angle);
@@ -183,18 +201,14 @@ function Player::update(level_obj_l){
 	foreach (var t in level_obj_l)
 		collision_check = collision_check || collision_obj.isCollidingBBox(t);
 	if (collision_check){
-		position = old_position;	
+		if (is_jumping){
+			is_jumping = false;
+			jump_target = 0.0;
+			old_position[1] = floor(old_position[1]) + 0.001;
+		}
+		position = old_position;
 		setPosition(position);
 	}
 	
-	
-		
-	/*if (keyPressed(VK_SPACE) && !has_shot){
-		my_bullet = bullet();
-		my_bullet.init(position, direction);
-		shoot_fx.play();
-		has_shot = true;
-	}
-	if (has_shot)
-		my_bullet.update();*/
+	trace(position, jump_target);
 }
