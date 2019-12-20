@@ -106,6 +106,7 @@ function Player::isColliding(){
 	foreach (var t in level_obj_array)
 		if (collision_obj.isCollidingBBox(t))
 			return true;
+			
 	return false;
 }
 
@@ -142,6 +143,7 @@ function Player::wasd(){
 	}
 	
 	if (!getYCollision()) {
+		outputln("Prevedo e salto");
 		updateY();
 	}
 }
@@ -157,7 +159,7 @@ function Player::updateY(){
 		position += ([0.0, 0.1, 0.0]);
 	} else {
 		is_ascending = false;
-		if (position.y > 0.0){			
+		if (position.y > 0.0){
 			position -= ([0.0, 0.1, 0.0]);
 		} else {
 			position.y = 0.0;
@@ -173,14 +175,19 @@ function Player::setPosition(pos){
 }
 
 function Player::getYCollision(){
+	if (position.y == 0.0)
+		return true;
+	
 	var check = false;
 	
 	collision_obj.setPosition(position - Y_OFFSET);
+	draw();
 	
 	foreach (var t in level_obj_array)
 		check = check || collision_obj.isCollidingBBox(t);
 		
-	collision_obj.setPosition(position + Y_OFFSET);
+	collision_obj.setPosition(position);
+	draw();
 	
 	return check;
 }
@@ -193,11 +200,8 @@ function Player::update(){
 	var i = int(position.z);
 	var j = int(position.x);
 	var k = int(position.y);
-	var collision_check = false;
 	
-	foreach (var t in level_obj_array)
-		collision_check = collision_check || collision_obj.isCollidingBBox(t);
-	if (!collision_check)
+	if (!isColliding())
 		old_position = position;
 	
 	if (keyPressed(VK_SHIFT)){
@@ -207,9 +211,9 @@ function Player::update(){
 	}
 	
 	if (keyPressed("e"))
-		angle -= 0.01;
+		angle -= 0.05;
 	else if (keyPressed("q"))
-		angle += 0.01;
+		angle += 0.05;
 	
 	direction = [sin(angle), 0, cos(angle)];
 	
@@ -218,18 +222,19 @@ function Player::update(){
 	right_strafe = [sin(angle_r), 0.0, cos(angle_r)];
 	left_strafe = [sin(angle_l), 0.0, cos(angle_l)];
 	
+	draw();
 	wasd();
 	if (keyPressed(VK_SPACE) && !is_jumping)
 		jump();
-	if (is_jumping)
+	if (is_jumping){
 		updateY();
+	}
 		
 	setRotation(angle);
 	setPosition(position);
 	
-	foreach (var t in level_obj_array)
-		collision_check = collision_check || collision_obj.isCollidingBBox(t);
-	if (collision_check){
+	draw();
+	if (isColliding()){
 		if (is_jumping){
 			is_jumping = false;
 			jump_target = 0.0;
@@ -238,6 +243,4 @@ function Player::update(){
 		position = old_position;
 		setPosition(position);
 	}
-	
-	trace(position, jump_target);
 }
