@@ -143,7 +143,6 @@ function Player::wasd(){
 	}
 	
 	if (!getYCollision()) {
-		outputln("Prevedo e salto");
 		updateY();
 	}
 }

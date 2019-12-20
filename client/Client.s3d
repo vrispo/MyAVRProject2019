@@ -104,6 +104,7 @@ function OnInit(params){
 	PDU[1] = my_id;
 	PDU[2] = my_ip;
 	mysend(broadcast_address, PDU);
+	outputln("sended REQ_CONNECT");
 	
 	/* wait for the server response */
 	var address1 = "................";
@@ -112,14 +113,20 @@ function OnInit(params){
 	
 	var old_time = getTime();//returns time in milliseconds
 	do{		
+		outputln("in the do while");
 		var current_time = getTime();
     	if(current_time-old_time>1000){
-    		mysend(server_ip, PDU);
+    		outputln("timeout: try send REQ_CONNECT again to:" + broadcast_address);
+    		mysend(broadcast_address, PDU);
+    		outputln("timeout: send REQ_CONNECT again");
     		old_time = getTime();
 		} 
-		received_data = NetVarReceiveFrom(net_channel, &address1);	
+		received_data = NetVarReceiveFrom(net_channel, &address1);
+		outputln("after received data");	
 		if(received_data != null){
+			outputln("received something");
 			if(received_data[0] == CONNECT_RESP_PDU){
+				outputln("received CONNECT_RESP");
 				var resp = received_data[1];
 				if(resp != ERR){
 					connected = true;
@@ -136,28 +143,28 @@ function OnInit(params){
 				for(var i = 0 ; i < MAX_PLAYERS ; i++){
 					if(i != my_index)
 						aplayer[i].init([0, 1, 0], [30, 0, 30], level_obj_l);
-				}				
+				}
+				recv = true;				
 			}			
-		}				
-    }while(recv == false );
+		}							
+    } while (!recv);
 	/* send ack */
 	PDU = array(2);
 	PDU[0] = ACK;
 	PDU[1] = OK;
-	mysend(server_ip, PDU);    	
+	mysend(server_ip, PDU); 
+	outputln("sended ACK");   	
 }
 
 function OnFrame(){
 	/* manage camera */
 	CameraMoveMouse();
-	
-	aplayer[my_index].update();
-	
+
 	SceneBegin();
 
-	//DrawGrid([0.5, 0.5, 0.5], 100);
-
 	// TODO: put your drawing code here
+	aplayer[my_index].update();
+	
 	my_level.draw();
 	for(var i=0 ; i < MAX_PLAYERS ; i++){
 		if((online_player[i] == true) && (i != my_index)){
@@ -166,7 +173,7 @@ function OnFrame(){
 	}
 	aplayer[my_index].draw();
 	
-	if(connected == false){
+	if(!connected){
 		ConsoleColor([255, 0, 0, 1]);
 		ConsoleText(0.5, 0.5, "You are not online!");		
 	}
@@ -240,7 +247,7 @@ function OnExit(){
 		if(received_data != null)
 			if(received_data[0] == ACK)
 				recv = true;;				
-    }while(recv == false );
+    }while(!recv);
     outputln("disconnected!");
 }
 

@@ -86,7 +86,7 @@ function OnTimer(){
 			if(active_connection < MAX_PLAYERS){
 				//find the first available place and give an OK response
 				var i = 0;
-				while(online_player[i].isConnected() == true)
+				while(online_player[i].isConnected())
 					i++;
 				active_connection++;
 				online_player[i].connection(id_req, ip_req);
@@ -119,8 +119,8 @@ function OnTimer(){
 				received_data = NetVarReceiveFrom(net_channel, &address1);	
 				if(received_data != null)
 					if(received_data[0] == ACK)
-						recv = true;;				
-		    }while(recv == false );							
+						recv = true;				
+		    }while(!recv);							
 		}
 		
 		if(received_data[0] == DISCONNECT_REQ_PDU){
@@ -129,7 +129,7 @@ function OnTimer(){
 			var index_req = received_data[3];
 			outputln("disconnection request " + ip_req + " " + id_req);
 			
-			if((online_player[index_req].isConnected() == true) && (online_player[index_req].__Get("id") == id_req)){
+			if((online_player[index_req].isConnected()) && (online_player[index_req].__Get("id") == id_req)){
 				online_player[index_req].Disconnection();
 				outputln("disconnected");			
 			}
