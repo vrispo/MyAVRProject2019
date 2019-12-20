@@ -21,7 +21,7 @@ extern "C" __declspec(dllexport) char * get_IPaddress(){
 		while (!IPFile.eof()) {
 			getline(IPFile, line);
 
-			if ((offset = line.find(search0, 0)) != std::string::npos) {
+			if ((offset = line.find(search0, 0)) != std::string::npos){
 				line.erase(0, 43);
 				int off;
 				if ((off = line.find(" ", 0)) != std::string::npos)
@@ -42,7 +42,7 @@ extern "C" __declspec(dllexport) char * get_IPaddress(){
 	return "";
 }
 
-extern "C" __declspec(dllexport) int open_idprog() {
+extern "C" __declspec(dllexport) int open_idprog(){
 	int ret = system("GetId.exe");
 	return ret;
 }

@@ -1,0 +1,21 @@
+/* Networking utility client side */
+
+#define CLIENT_PORT 50024
+#define SERVER_PORT 50023 
+
+var traffic_out = 0;
+var traffic_in = 0;
+
+function MySend(ip,PDU){
+	static var counter = 0;
+	static var old_time = 0;
+    var current_time = getTime();//returns time in milliseconds
+    if(current_time-old_time > 1000){
+    	traffic_out = counter;
+    	
+    	old_time = getTime();
+    	counter = 0;	
+    }
+	NetVarSendTo(ip, SERVER_PORT, PDU);
+	counter += len(PDU);	
+}

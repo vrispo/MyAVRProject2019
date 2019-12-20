@@ -19,9 +19,9 @@ Scheda LAN wireless Connessione alla rete locale (LAN)* 2:
 
 Scheda LAN wireless Wi-Fi:
 
-   Suffisso DNS specifico per connessione: 
+   Suffisso DNS specifico per connessione: homenet.telecomitalia.it
    Indirizzo IPv6 locale rispetto al collegamento . : fe80::532:3404:ebbb:88ce%18
-   Indirizzo IPv4. . . . . . . . . . . . : 192.168.1.130
+   Indirizzo IPv4. . . . . . . . . . . . : 192.168.1.128
    Subnet mask . . . . . . . . . . . . . : 255.255.255.0
    Gateway predefinito . . . . . . . . . : 192.168.1.1
 

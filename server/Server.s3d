@@ -1,6 +1,8 @@
 /* Include s3d symbols */
 #include <Script3d.h>
 
+#define CONNECT_REQ_PDU 0
+
 /* Set global scene parameters */
 SET SCENE_FOV  = 60;
 SET SCENE_NEAR = 0.5;
@@ -8,6 +10,7 @@ SET SCENE_FAR  = 1000;
 
 // TODO: put your global variables here
 var my_ip;
+var net_channel;
 
 function OnDownload(){
 	// TODO: download your resources here
@@ -23,6 +26,8 @@ function OnInit(params){
 	
 	Outputln("\n");
 	Outputln(my_ip);
+	
+	net_channel= NetCreateChannel(50023,"0.0.0.0",VR_NO_BLOCKING);
 }
 
 function OnFrame(){
@@ -40,6 +45,16 @@ function DownloadReady(RequestID){
 
 function OnTimer(){
 	// TODO:
+	var address1 = "................";
+	var received_data = NetVarReceiveFrom(net_channel,&address1);
+	
+	if(received_data != NULL){
+		if(received_data[0] == CONNECT_REQ_PDU){
+			var id_req = received_data[1];
+			var ip_req = received_data[2];
+			outputln("received: "+id_req+" "+ip_req);	
+		}
+	}
 }
 
 function OnEvent(eventID, wparam, lparam){

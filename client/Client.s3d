@@ -2,10 +2,12 @@
 #include <Script3d.h>
 #include <Camera.s3d.h>
 
+#include "Networking.s3d"
 #include "player.s3d"
 #include "Level.s3d"
 
 #define MAX_PLAYERS 2
+#define CONNECT_REQ_PDU 0
 
 /* Set global scene parameters */
 SET SCENE_FOV  = 60;
@@ -13,6 +15,10 @@ SET SCENE_NEAR = 0.5;
 SET SCENE_FAR  = 1000;
 
 // TODO: put your global variables here
+var my_id;
+var broadcast_address;
+var net_channel;
+
 var my_ip;
 
 var level_obj_l;
@@ -38,8 +44,6 @@ function OnDownload(){
 	// E.g.: FileDownload("resource.ext");
 	FileDownload("XVRResources.zip");
 }
-
-var my_id;
 
 function OnInit(params){
 	/* initialize camera */
@@ -68,11 +72,25 @@ function OnInit(params){
 	Outputln(TestDLL.open_idprog());
 	my_id = fileread("userid.txt");
 	outputln("id = "+my_id);
+	
 	my_ip = TestDLL.get_IPaddress();
 	Outputln("\n");
 	Outputln("IP:"+my_ip);
+	var ip_elem[4];
+	ip_elem = split(my_ip+"",".");
+	broadcast_address = ip_elem[0] + "." + ip_elem[1] + "." + ip_elem[2] + ".255";
+	outputln("broadcast = "+broadcast_address);
 	
 	SetLocalDir(dir);
+	
+	net_channel= NetCreateChannel(50024,"0.0.0.0",VR_NO_BLOCKING);
+	
+	/* Send request in broadcast to find server ip */
+	var PDU = array(3);
+	PDU[0] = CONNECT_REQ_PDU;
+	PDU[1] = my_id;
+	PDU[2] = my_ip;
+	mysend(broadcast_address, PDU);
 }
 
 function OnFrame(){
