@@ -158,7 +158,9 @@ function OnInit(params){
 	PDU[0] = ACK;
 	PDU[1] = OK;
 	mysend(server_ip, PDU); 
-	outputln("sended ACK");   	
+	outputln("sended ACK");
+	
+	SetTimeStep(100);
 }
 
 function OnFrame(){
@@ -169,34 +171,6 @@ function OnFrame(){
 
 	// TODO: put your drawing code here
 	aplayer[my_index].update();
-	
-	/* send my position to the server */
-	var PDU = array(6);
-	PDU[0] = POSITION_UPDATE_PDU;
-	PDU[1] = my_ip;
-	PDU[2] = my_index;
-	PDU[3] = aplayer[my_index].__get("position");
-	PDU[4] = aplayer[my_index].__get("angle");
-	PDU[5] = aplayer[my_index].__get("current_frame");
-	mysend(server_ip, PDU);
-	
-	/*aspetto l'ack */
-	var address1 = "................";
-	var received_data;
-	var recv = false;
-	
-	var old_time = getTime();//returns time in milliseconds
-	do{		
-		var current_time = getTime();
-    	if(current_time-old_time>1000){
-    		mysend(server_ip, PDU);
-    		old_time = getTime();
-		} 
-		received_data = NetVarReceiveFrom(net_channel, &address1);	
-		if(received_data != null)
-			if(received_data[0] == ACK)
-				recv = true;;				
-    }while(!recv);
 	
 	my_level.draw();
 	
@@ -229,8 +203,35 @@ function DownloadReady(RequestID){
 
 function OnTimer(){
 	// TODO:
+	/* send my position to the server */
+	var PDU = array(6);
+	PDU[0] = POSITION_UPDATE_PDU;
+	PDU[1] = my_ip;
+	PDU[2] = my_index;
+	PDU[3] = aplayer[my_index].__get("position");
+	PDU[4] = aplayer[my_index].__get("angle");
+	PDU[5] = aplayer[my_index].__get("current_frame");
+	mysend(server_ip, PDU);
+	
+	/*aspetto l'ack */
 	var address1 = "................";
-	var received_data = NetVarReceiveFrom(net_channel,&address1);
+	var received_data;
+	var recv = false;
+	
+	var old_time = getTime();//returns time in milliseconds
+	do{		
+		var current_time = getTime();
+    	if(current_time-old_time>1000){
+    		mysend(server_ip, PDU);
+    		old_time = getTime();
+		} 
+		received_data = NetVarReceiveFrom(net_channel, &address1);	
+		if(received_data != null)
+			if(received_data[0] == ACK)
+				recv = true;				
+    }while(!recv);	
+	
+	received_data = NetVarReceiveFrom(net_channel,&address1);
 	
 	if(received_data != NULL){
 		if(received_data[0] == CONNECT_RESP_PDU){
