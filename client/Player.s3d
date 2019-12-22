@@ -48,6 +48,7 @@ class Player{
 	wasd();
 	jump();
 	updateY();
+	enemyUpdate(epos, eangle, eframe);
 };
 
 function Player::init(col, pos, level_obj_l){
@@ -242,4 +243,18 @@ function Player::update(){
 		position = old_position;
 		setPosition(position);
 	}
+}
+
+function Player::enemyUpdate(epos, eangle, eframe){
+ var i = int(epos[0]);
+ var j = int(epos[1]);
+ var k = int(epos[2]);
+ 
+ current_frame = eframe;
+ if (current_frame == SWAT_START_WALK || current_frame == SWAT_END_WALK)
+  step_fx.play();
+ 
+ direction = [sin(eangle), 0, cos(eangle)];
+ setRotation(eangle);
+ setPosition(epos);
 }

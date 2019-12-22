@@ -10,6 +10,9 @@
 #define CONNECT_RESP_PDU 1
 #define DISCONNECT_REQ_PDU 2
 #define ACK 3
+#define POSITION_UPDATE_PDU 4
+#define ENEMY_POSITION_PDU 5
+#define ENEMY_DISCONNECTION_PDU 6
 
 #define OK 1
 #define ERR -1
@@ -122,7 +125,7 @@ function OnTimer(){
 						recv = true;				
 		    }while(!recv);							
 		}
-		
+		/* disconnection of the client */
 		if(received_data[0] == DISCONNECT_REQ_PDU){
 			var ip_req = received_data[1];
 			var id_req = received_data[2];
@@ -131,6 +134,7 @@ function OnTimer(){
 			
 			if((online_player[index_req].isConnected()) && (online_player[index_req].__Get("id") == id_req)){
 				online_player[index_req].Disconnection();
+				active_connection--;
 				outputln("disconnected");			
 			}
 			
@@ -138,7 +142,72 @@ function OnTimer(){
 			var PDU = array(2);
 			PDU[0] = ACK;
 			PDU[1] = OK;
-			mysend(ip_req, PDU); 		
+			mysend(ip_req, PDU); 	
+			
+			/* send to the other online player that the player x is disconnected from the game */
+			PDU[0] = ENEMY_DISCONNECTION_PDU;
+			PDU[1] = index_req;
+			
+			for(var i=0 ; i < MAX_PLAYERS ; i++){
+				if((i != index_req) && online_player[i].isConnected()){
+					mysend(online_player[i].__get("ip"), PDU);
+					/*aspetto l'ack */
+					var recv = false;
+					var old_time = getTime();//returns time in milliseconds
+					do{		
+						var current_time = getTime();
+				    	if(current_time-old_time>1000){
+				    		mysend(online_player[i].__get("ip"), PDU);
+				    		old_time = getTime();
+						} 
+						received_data = NetVarReceiveFrom(net_channel, &address1);	
+						if(received_data != null)
+							if(received_data[0] == ACK)
+								recv = true;				
+				    }while(!recv);					
+				}
+			}			
+		}
+		if(received_data[0] == POSITION_UPDATE_PDU){
+			var ip_req = received_data[1];
+			var index = received_data[2];
+			var position = received_data[3];
+			var angle = received_data[4];
+			var frame = received_data[5];
+			
+			/* send ack */
+			var PDU = array(2);
+			PDU[0] = ACK;
+			PDU[1] = OK;
+			mysend(ip_req, PDU);
+			
+			/*send the position to the other players */
+			PDU = array(5);
+			PDU[0] = ENEMY_POSITION_PDU;
+			PDU[1] = index;
+			PDU[2] = position;
+			PDU[3] = angle;
+			PDU[4] = frame;
+			
+			for(var i=0 ; i < MAX_PLAYERS ; i++){
+				if((i != index) && online_player[i].isConnected()){
+					mysend(online_player[i].__get("ip"), PDU);
+					/*aspetto l'ack */
+					var recv = false;
+					var old_time = getTime();//returns time in milliseconds
+					do{		
+						var current_time = getTime();
+				    	if(current_time-old_time>1000){
+				    		mysend(online_player[i].__get("ip"), PDU);
+				    		old_time = getTime();
+						} 
+						received_data = NetVarReceiveFrom(net_channel, &address1);	
+						if(received_data != null)
+							if(received_data[0] == ACK)
+								recv = true;				
+				    }while(!recv);					
+				}
+			}						
 		}
 	}
 }

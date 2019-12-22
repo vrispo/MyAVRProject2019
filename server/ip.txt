@@ -22,6 +22,7 @@ Scheda LAN wireless Wi-Fi:
    Suffisso DNS specifico per connessione: lan
    Indirizzo IPv6 . . . . . . . . . . . . . . . . . : 2001:b07:6443:57fb:532:3404:ebbb:88ce
    Indirizzo IPv6 temporaneo. . . . . . . . . . . . : 2001:b07:6443:57fb:79b2:6067:84a4:81d5
+   Indirizzo IPv6 temporaneo. . . . . . . . . . . . : 2001:b07:6443:57fb:a47d:60c5:9474:100a
    Indirizzo IPv6 locale rispetto al collegamento . : fe80::532:3404:ebbb:88ce%18
    Indirizzo IPv4. . . . . . . . . . . . : 192.168.1.29
    Subnet mask . . . . . . . . . . . . . : 255.255.255.0

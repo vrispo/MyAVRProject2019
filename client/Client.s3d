@@ -12,6 +12,9 @@
 #define CONNECT_RESP_PDU 1
 #define DISCONNECT_REQ_PDU 2
 #define ACK 3
+#define POSITION_UPDATE_PDU 4
+#define ENEMY_POSITION_PDU 5
+#define ENEMY_DISCONNECTION_PDU 6
 
 #define OK 1
 #define ERR -1
@@ -165,7 +168,37 @@ function OnFrame(){
 	// TODO: put your drawing code here
 	aplayer[my_index].update();
 	
+	/* send my position to the server */
+	var PDU = array(6);
+	PDU[0] = POSITION_UPDATE_PDU;
+	PDU[1] = my_ip;
+	PDU[2] = my_index;
+	PDU[3] = aplayer[my_index].__get("position");
+	PDU[4] = aplayer[my_index].__get("angle");
+	PDU[5] = aplayer[my_index].__get("current_frame");
+	mysend(server_ip, PDU);
+	
+	/*aspetto l'ack */
+	var address1 = "................";
+	var received_data;
+	var recv = false;
+	
+	var old_time = getTime();//returns time in milliseconds
+	do{		
+		var current_time = getTime();
+    	if(current_time-old_time>1000){
+    		mysend(server_ip, PDU);
+    		old_time = getTime();
+		} 
+		received_data = NetVarReceiveFrom(net_channel, &address1);	
+		if(received_data != null)
+			if(received_data[0] == ACK)
+				recv = true;;				
+    }while(!recv);
+	
 	my_level.draw();
+	
+	/* if there is some enemy active I draw it */
 	for(var i=0 ; i < MAX_PLAYERS ; i++){
 		if((online_player[i] == true) && (i != my_index)){
 			aplayer[i].draw();
@@ -204,6 +237,20 @@ function OnTimer(){
 			PDU[0] = ACK;
 			PDU[1] = OK;
 			mysend(server_ip, PDU);
+		}
+		if(received_data[0] == ENEMY_POSITION_PDU){
+			var enemy_index = received_data[1];
+			var enemy_position = received_data[2];
+			var enemy_angle = received_data[3];
+			var enemy_frame = received_data[4];
+			
+			online_player[enemy_index] = true;
+			aplayer[enemy_index].enemyUpdate(enemy_position, enemy_angle, enemy_frame);
+		}
+		if(received_data[0] == ENEMY_DISCONNECTION_PDU){
+			var enemy_index = received_data[1];
+			online_player[enemy_index] = false;
+			outputln("enemy " + enemy_index + "disconnected");
 		}
 	}
 	
