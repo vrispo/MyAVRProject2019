@@ -7,6 +7,7 @@
 #define SIDE_STEP 0.05
 #define FRAME_STEP 1.0
 #define JUMP_HEIGHT 1.5
+#define JUMP_STEP 0.05
 #define Y_OFFSET [0.0, 0.1, 0.0]
 
 var shoot_fx;
@@ -28,7 +29,6 @@ class Player{
 	var left_strafe;
 	var right_strafe;
 	var direction;
-	var jump_step;
 	var jump_target;
 	var current_frame;
 	var run;
@@ -40,15 +40,17 @@ class Player{
 	
 	init(col, pos, level_obj_l);
 	draw();
+	transparent_draw();
 	isColliding();
 	setPosition(pos);
 	getYCollision();
 	setRotation(angle);
 	update();
+	enemyUpdate(epos, eangle, eframe);
 	wasd();
 	jump();
 	updateY();
-	enemyUpdate(epos, eangle, eframe);
+	firstPersonFixes();
 };
 
 function Player::init(col, pos, level_obj_l){
@@ -101,6 +103,11 @@ function Player::draw(){
 	collision_obj.draw();
 	if (has_shot)
 		my_bullet.draw();
+}
+
+function Player::transparent_draw(){
+	obj.draw();
+	collision_obj.draw();
 }
 
 function Player::isColliding(){
@@ -156,11 +163,11 @@ function Player::jump(){
 
 function Player::updateY(){
 	if (position.y < jump_target && is_ascending){
-		position += ([0.0, 0.1, 0.0]);
+		position += ([0.0, JUMP_STEP, 0.0]);
 	} else {
 		is_ascending = false;
 		if (position.y > 0.0){
-			position -= ([0.0, 0.1, 0.0]);
+			position -= ([0.0, JUMP_STEP, 0.0]);
 		} else {
 			position.y = 0.0;
 			jump_target = 0.0;
@@ -181,13 +188,13 @@ function Player::getYCollision(){
 	var check = false;
 	
 	collision_obj.setPosition(position - Y_OFFSET);
-	draw();
+	collision_obj.draw();
 	
 	foreach (var t in level_obj_array)
 		check = check || collision_obj.isCollidingBBox(t);
 		
 	collision_obj.setPosition(position);
-	draw();
+	collision_obj.draw();
 	
 	return check;
 }
@@ -200,6 +207,8 @@ function Player::update(){
 	var i = int(position.z);
 	var j = int(position.x);
 	var k = int(position.y);
+	
+	obj.hide();
 	
 	if (!isColliding())
 		old_position = position;
@@ -222,7 +231,6 @@ function Player::update(){
 	right_strafe = [sin(angle_r), 0.0, cos(angle_r)];
 	left_strafe = [sin(angle_l), 0.0, cos(angle_l)];
 	
-	draw();
 	wasd();
 	if (keyPressed(VK_SPACE) && !is_jumping)
 		jump();
@@ -233,7 +241,7 @@ function Player::update(){
 	setRotation(angle);
 	setPosition(position);
 	
-	draw();
+	transparent_draw();
 	if (isColliding()){
 		if (is_jumping){
 			is_jumping = false;
@@ -243,6 +251,8 @@ function Player::update(){
 		position = old_position;
 		setPosition(position);
 	}
+	
+	obj.unhide();
 }
 
 function Player::enemyUpdate(epos, eangle, eframe){
@@ -257,4 +267,9 @@ function Player::enemyUpdate(epos, eangle, eframe){
  direction = [sin(eangle), 0, cos(eangle)];
  setRotation(eangle);
  setPosition(epos);
+}
+
+function Player::firstPersonFixes(){
+	obj.upperobj.hide();
+	obj.lowerobj.hide();
 }
