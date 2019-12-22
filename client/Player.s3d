@@ -4,6 +4,7 @@
 #define SWAT_END_WALK 48
 #define COLLISION_SCALE 0.80, 1.6, 0.80
 #define FRONT_STEP 0.1
+#define BACK_STEP 0.08
 #define SIDE_STEP 0.05
 #define FRAME_STEP 1.0
 #define JUMP_HEIGHT 1.5
@@ -24,12 +25,16 @@ class Player{
 	var collision_obj;
 	var old_position;
 	var position;
-	var angle;
+	var move;
+	var angle_xz;
+	var angle_step;
 	var strafe;
 	var left_strafe;
 	var right_strafe;
+	var gaze;
 	var direction;
 	var jump_target;
+	var last_frame;
 	var current_frame;
 	var run;
 	var is_jumping;
@@ -44,9 +49,10 @@ class Player{
 	isColliding();
 	setPosition(pos);
 	getYCollision();
-	setRotation(angle);
+	setRotation(angle_xz);
 	update();
-	enemyUpdate(epos, eangle, eframe);
+	enemyUpdate(epos, emove, eframe, eangle_xz, eangle_step);
+	enemyInterpolate();
 	wasd();
 	jump();
 	updateY();
@@ -77,10 +83,13 @@ function Player::init(col, pos, level_obj_l){
 	obj.addchild(lower_obj);
 	obj.addchild(weapon_obj);
 	
-	angle = 0.0;
-	position = pos;	
+	angle_xz = 0.0;
+	angle_step = 0.0;
+	position = pos;
+	move = 0;
 	old_position = position;
 	direction = [0.0, 0.0 , 1.0];
+	last_frame = 0;
 	current_frame = SWAT_START_WALK;
 	run = 1.0;
 	color = col;
@@ -122,21 +131,25 @@ function Player::wasd(){
 	var strafe = 1;	
 	if (keyPressed("d")){
 		strafe = 2;
-		position -= (right_strafe * SIDE_STEP);
+		move = -(right_strafe * SIDE_STEP);
+		position += move;
 	} else if (keyPressed("a")){
 		strafe = 2;
-		position -= (left_strafe * SIDE_STEP);
+		move = -(left_strafe * SIDE_STEP);
+		position += move;
 	}
 	// No else if because of diagonal movement	
 	if (keyPressed("w")){
-		position += (direction * (FRONT_STEP / strafe) * run);
+		move = (direction * (FRONT_STEP / strafe) * run);
+		position += move;
 		current_frame += FRAME_STEP;
 		if (current_frame == SWAT_END_WALK){
 			current_frame = SWAT_START_WALK + 1;
 			step_fx.play();
 		}		
 	} else if (keyPressed("s")){
-		position -= (direction * (FRONT_STEP / strafe));
+		move = -(direction * (BACK_STEP / strafe));
+		position += move;
 		current_frame -= FRAME_STEP;
 		if(current_frame == SWAT_START_WALK){
 			current_frame = SWAT_END_WALK - 1;
@@ -163,11 +176,13 @@ function Player::jump(){
 
 function Player::updateY(){
 	if (position.y < jump_target && is_ascending){
-		position += ([0.0, JUMP_STEP, 0.0]);
+		move = [0.0, JUMP_STEP, 0.0];
+		position += move;
 	} else {
 		is_ascending = false;
 		if (position.y > 0.0){
-			position -= ([0.0, JUMP_STEP, 0.0]);
+			move = -[0.0, JUMP_STEP, 0.0];
+			position += move;
 		} else {
 			position.y = 0.0;
 			jump_target = 0.0;
@@ -199,14 +214,15 @@ function Player::getYCollision(){
 	return check;
 }
 
-function Player::setRotation(angle){
-	obj.setRotation(angle * 180.0 / PI, 0, 1, 0);
+function Player::setRotation(angle_xz){
+	obj.setRotation(angle_xz * 180.0 / PI, 0, 1, 0);
 }
 
 function Player::update(){
 	var i = int(position.z);
 	var j = int(position.x);
 	var k = int(position.y);
+	move = 0;
 	
 	obj.hide();
 	
@@ -219,28 +235,29 @@ function Player::update(){
 		run = 1.0;
 	}
 	
+	// Andr
 	if (keyPressed("e"))
-		angle -= 0.05;
+		angle_xz -= 0.05;
 	else if (keyPressed("q"))
-		angle += 0.05;
+		angle_xz += 0.05;
 	
-	direction = [sin(angle), 0, cos(angle)];
+	gaze = [sin(angle_xz), 0, cos(angle_xz)];	
+	direction = [gaze[0], 0, gaze[2]];
 	
-	var angle_r = angle + (PI / 2);
-	var angle_l = angle - (PI / 2);
-	right_strafe = [sin(angle_r), 0.0, cos(angle_r)];
-	left_strafe = [sin(angle_l), 0.0, cos(angle_l)];
+	var angle_xz_r = angle_xz + (PI / 2);
+	var angle_xz_l = angle_xz - (PI / 2);
+	right_strafe = [sin(angle_xz_r), 0.0, cos(angle_xz_r)];
+	left_strafe = [sin(angle_xz_l), 0.0, cos(angle_xz_l)];
 	
 	wasd();
 	if (keyPressed(VK_SPACE) && !is_jumping)
 		jump();
-	if (is_jumping){
+	if (is_jumping)
 		updateY();
-	}
 		
-	setRotation(angle);
+	setRotation(angle_xz);
 	setPosition(position);
-	
+		
 	transparent_draw();
 	if (isColliding()){
 		if (is_jumping){
@@ -255,18 +272,37 @@ function Player::update(){
 	obj.unhide();
 }
 
-function Player::enemyUpdate(epos, eangle, eframe){
+function Player::enemyUpdate(epos, emove, eframe, eangle_xz, eangle_step){
  var i = int(epos[0]);
  var j = int(epos[1]);
  var k = int(epos[2]);
  
+ last_frame = current_frame;
  current_frame = eframe;
- if (current_frame == SWAT_START_WALK || current_frame == SWAT_END_WALK)
+ if ((current_frame == SWAT_START_WALK || current_frame == SWAT_END_WALK) && last_frame != current_frame)
   step_fx.play();
  
- direction = [sin(eangle), 0, cos(eangle)];
- setRotation(eangle);
- setPosition(epos);
+ move = emove;
+ position = epos;
+ direction = [sin(eangle_xz), 0, cos(eangle_xz)];
+ angle_step = eangle_step;
+ setRotation(eangle_xz);
+ setPosition(position);
+}
+
+function Player::enemyInterpolate(){
+ var i = int(position[0]);
+ var j = int(position[1]);
+ var k = int(position[2]);
+ 
+ last_frame = current_frame;
+ current_frame = 0; //DA RAGIONARCI PER BENE
+ if ((current_frame == SWAT_START_WALK || current_frame == SWAT_END_WALK) && last_frame != current_frame)
+  step_fx.play();
+ 
+ direction = [sin(angle_xz + angle_step), 0, cos(angle_xz + angle_step)];
+ setRotation(angle_xz + angle_step);
+ setPosition(position + move);
 }
 
 function Player::firstPersonFixes(){
