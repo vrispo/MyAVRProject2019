@@ -57,6 +57,7 @@ function OnInit(params){
 		online_player[i] = Player();
 		online_player[i].init(i, init_pos[i]);
 	}
+	SetTimeStep(1);
 }
 
 function OnFrame(){
@@ -81,7 +82,7 @@ function OnTimer(){
 	var received_data = NetVarReceiveFrom(net_channel,&address1);
 	
 	if(received_data != NULL){
-		if(received_data[0] == CONNECT_REQ_PDU){
+		if(received_data[0] == CONNECT_REQ_PDU){			
 			var id_req = received_data[1];
 			var ip_req = received_data[2];
 			
@@ -151,7 +152,7 @@ function OnTimer(){
 			for(var i=0 ; i < MAX_PLAYERS ; i++){
 				if((i != index_req) && online_player[i].isConnected()){
 					mysend(online_player[i].__get("ip"), PDU);
-					/*aspetto l'ack */
+					/*aspetto l'ack 
 					var recv = false;
 					var old_time = getTime();//returns time in milliseconds
 					do{		
@@ -164,7 +165,7 @@ function OnTimer(){
 						if(received_data != null)
 							if(received_data[0] == ACK)
 								recv = true;				
-				    }while(!recv);					
+				    }while(!recv);	*/				
 				}
 			}			
 		}
@@ -175,6 +176,7 @@ function OnTimer(){
 			var angle = received_data[4];
 			var frame = received_data[5];
 			
+			outputln("received position from " + online_player[index].__get("id"));
 			/* send ack */
 			var PDU = array(2);
 			PDU[0] = ACK;
@@ -192,7 +194,8 @@ function OnTimer(){
 			for(var i=0 ; i < MAX_PLAYERS ; i++){
 				if((i != index) && online_player[i].isConnected()){
 					mysend(online_player[i].__get("ip"), PDU);
-					/*aspetto l'ack */
+					outputln("sended position to " + online_player[i].__get("id"));
+					/*aspetto l'ack 
 					var recv = false;
 					var old_time = getTime();//returns time in milliseconds
 					do{		
@@ -200,12 +203,13 @@ function OnTimer(){
 				    	if(current_time-old_time>1000){
 				    		mysend(online_player[i].__get("ip"), PDU);
 				    		old_time = getTime();
-						} 
+						}
 						received_data = NetVarReceiveFrom(net_channel, &address1);	
 						if(received_data != null)
 							if(received_data[0] == ACK)
 								recv = true;				
-				    }while(!recv);					
+				    }while(!recv);
+				    outputln("dio maledetto");	*/			
 				}
 			}						
 		}
