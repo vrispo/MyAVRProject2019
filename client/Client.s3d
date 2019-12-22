@@ -19,8 +19,6 @@
 #define OK 1
 #define ERR -1
 
-#define CAMERA_OFFSET [0.0, 1.2, 0.0]
-
 /* Set global scene parameters */
 SET SCENE_FOV  = 60;
 SET SCENE_NEAR = 0.5;
@@ -51,7 +49,7 @@ var PosL = [16.0, 100.0, 16.0];	// default light position
 
 
 /* Function declarations */
-function CameraMove();
+function CameraMoveMouse();
 function DrawGrid(col, size);
 
 function OnDownload(){
@@ -163,7 +161,7 @@ function OnInit(params){
 
 function OnFrame(){
 	/* manage camera */
-	CameraMove();
+	CameraMoveMouse();
 
 	SceneBegin();
 
@@ -303,9 +301,9 @@ function OnExit(){
 
 
 // Camera manager (using mouse)
-function CameraMove(){	
-	CameraSetDirection(aplayer[my_index].__Get("direction"));
-	CameraSetPosition(aplayer[my_index].__Get("position") += CAMERA_OFFSET);
+function CameraMoveMouse(){	
+	CameraMoveMouse_MBL_LC();
+
 }
 
 
