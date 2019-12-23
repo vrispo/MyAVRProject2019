@@ -145,7 +145,7 @@ function Player::wasd(){
 		move = (direction * (FRONT_STEP / strafe) * run);
 		position += move;
 		current_frame += FRAME_STEP;
-		if (current_frame == SWAT_END_WALK){
+		if (current_frame >= SWAT_END_WALK){
 			current_frame = SWAT_START_WALK + 1;
 			step_fx.play();
 		}		
@@ -153,13 +153,13 @@ function Player::wasd(){
 		move = -(direction * (BACK_STEP / strafe));
 		position += move;
 		current_frame -= FRAME_STEP;
-		if(current_frame == SWAT_START_WALK){
+		if(current_frame <= SWAT_START_WALK){
 			current_frame = SWAT_END_WALK - 1;
 			step_fx.play();
 		}
 	} else if (strafe == 2){ // Manage animation for strafing only
 		current_frame += FRAME_STEP;
-		if (current_frame == SWAT_END_WALK){
+		if (current_frame >= SWAT_END_WALK){
 			current_frame = SWAT_START_WALK + 1;
 			step_fx.play();
 		}
@@ -282,7 +282,7 @@ function Player::enemyUpdate(epos, emove, eframe, eangle_xz){
 	direction = [sin(eangle_xz), 0, cos(eangle_xz)];
 	old_angle_xz = angle_xz;
 	angle_xz = eangle_xz;
-	angle_step = angle_xz - old_angle_xz;
+	angle_step = (angle_xz - old_angle_xz) / 20;
 	setRotation(angle_xz);
 	setPosition(position);
 }

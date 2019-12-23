@@ -183,7 +183,7 @@ function OnFrame(){
 	
 	/* send my position to the server */
 	var current_updatetime = getTime();//returns time in milliseconds
-    if(current_updatetime - old_updatetime > 100){
+    if(current_updatetime - old_updatetime > 50){
     	old_updatetime = current_updatetime;
     	
 		var PDU = array(7);
@@ -273,8 +273,6 @@ function OnTimer(){
 			var enemy_angle = received_data[5];
 			
 			is_enemy_updated[enemy_index] = true;
-			
-			outputln("Ricevuto posizione da " + str(enemy_index));
 			
 			online_player[enemy_index] = true;
 			aplayer[enemy_index].enemyUpdate(enemy_position, enemy_move, enemy_frame, enemy_angle);
