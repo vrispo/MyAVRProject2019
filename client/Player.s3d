@@ -27,6 +27,7 @@ class Player{
 	var position;
 	var move;
 	var angle_xz;
+	var old_angle_xz;
 	var angle_step;
 	var strafe;
 	var left_strafe;
@@ -51,7 +52,7 @@ class Player{
 	getYCollision();
 	setRotation(angle_xz);
 	update();
-	enemyUpdate(epos, emove, eframe, eangle_xz, eangle_step);
+	enemyUpdate(epos, emove, eframe, eangle_xz);
 	enemyInterpolate();
 	wasd();
 	jump();
@@ -85,6 +86,7 @@ function Player::init(col, pos, level_obj_l){
 	
 	angle_xz = 0.0;
 	angle_step = 0.0;
+	old_angle_xz = 0.0;
 	position = pos;
 	move = [0.0, 0.0, 0.0];
 	old_position = position;
@@ -219,9 +221,6 @@ function Player::setRotation(angle_xz){
 }
 
 function Player::update(){
-	var i = int(position.z);
-	var j = int(position.x);
-	var k = int(position.y);
 	move = [0.0, 0.0, 0.0];
 	
 	obj.hide();
@@ -270,36 +269,31 @@ function Player::update(){
 	}
 	
 	obj.unhide();
-	trace(move, position);
 }
 
-function Player::enemyUpdate(epos, emove, eframe, eangle_xz, eangle_step){
-	var i = int(epos[0]);
-	var j = int(epos[1]);
-	var k = int(epos[2]);
-	 
+function Player::enemyUpdate(epos, emove, eframe, eangle_xz){
 	last_frame = current_frame;
 	current_frame = eframe;
 	if ((current_frame == SWAT_START_WALK || current_frame == SWAT_END_WALK) && last_frame != current_frame)
 		step_fx.play();
-	 
+	
 	move = emove;
 	position = epos;
 	direction = [sin(eangle_xz), 0, cos(eangle_xz)];
-	angle_step = eangle_step;
-	setRotation(eangle_xz);
+	old_angle_xz = angle_xz;
+	angle_xz = eangle_xz;
+	angle_step = angle_xz - old_angle_xz;
+	setRotation(angle_xz);
 	setPosition(position);
 }
 
 function Player::enemyInterpolate(){
-	var i = int(position[0]);
-	var j = int(position[1]);
-	var k = int(position[2]);
-	 
 	direction = [sin(angle_xz + angle_step), 0, cos(angle_xz + angle_step)];
-	setRotation(angle_xz + angle_step);
-	setPosition(position + move);
-	 
+	angle_xz += angle_step;
+	setRotation(angle_xz);
+	position += move;
+	setPosition(position);
+	
 	last_frame = current_frame;
 	var scalar = move[0] * direction[0] + move[2] * direction[2];
 	var move_magn = move[0] * move[0] + move[2] * move[2];

@@ -183,10 +183,10 @@ function OnFrame(){
 	
 	/* send my position to the server */
 	var current_updatetime = getTime();//returns time in milliseconds
-    if(current_updatetime - old_updatetime > 200){
+    if(current_updatetime - old_updatetime > 100){
     	old_updatetime = current_updatetime;
     	
-		var PDU = array(8);
+		var PDU = array(7);
 		PDU[0] = POSITION_UPDATE_PDU;
 		PDU[1] = my_ip;
 		PDU[2] = my_index;
@@ -194,7 +194,6 @@ function OnFrame(){
 		PDU[4] = aplayer[my_index].__get("move");
 		PDU[5] = aplayer[my_index].__get("current_frame");
 		PDU[6] = aplayer[my_index].__get("angle_xz");
-		PDU[7] = PDU[4] / 20;
 		mysend(server_ip, PDU);
 		
 		/*aspetto l'ack */
@@ -205,7 +204,7 @@ function OnFrame(){
 		var old_time = getTime();//returns time in milliseconds
 		do{		
 			var current_time = getTime();
-	    	if(current_time-old_time>1000){
+	    	if(current_time-old_time > 1000){
 	    		mysend(server_ip, PDU);
 	    		old_time = getTime();
 			} 
@@ -272,14 +271,13 @@ function OnTimer(){
 			var enemy_move = received_data[3];
 			var enemy_frame = received_data[4];
 			var enemy_angle = received_data[5];
-			var enemy_angle_step = received_data[6];
 			
 			is_enemy_updated[enemy_index] = true;
 			
 			outputln("Ricevuto posizione da " + str(enemy_index));
 			
 			online_player[enemy_index] = true;
-			aplayer[enemy_index].enemyUpdate(enemy_position, enemy_move, enemy_frame, enemy_angle, enemy_angle_step);
+			aplayer[enemy_index].enemyUpdate(enemy_position, enemy_move, enemy_frame, enemy_angle);
 			
 			/* send the ack
 			var PDU = array(2);

@@ -176,7 +176,6 @@ function OnTimer(){
 			var move = received_data[4];
 			var frame = received_data[5];
 			var angle = received_data[6];
-			var angle_step = received_data[7];
 			
 			outputln("received position from " + online_player[index].__get("id"));
 			/* send ack */
@@ -186,14 +185,13 @@ function OnTimer(){
 			mysend(ip_req, PDU);
 			
 			/*send the position to the other players */
-			PDU = array(7);
+			PDU = array(6);
 			PDU[0] = ENEMY_POSITION_PDU;
 			PDU[1] = index;
 			PDU[2] = position;
 			PDU[3] = move;
 			PDU[4] = frame;
 			PDU[5] = angle;
-			PDU[6] = angle_step;
 			
 			for(var i=0 ; i < MAX_PLAYERS ; i++){
 				if((i != index) && online_player[i].isConnected()){
