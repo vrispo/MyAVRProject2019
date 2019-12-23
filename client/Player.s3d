@@ -222,7 +222,7 @@ function Player::update(){
 	var i = int(position.z);
 	var j = int(position.x);
 	var k = int(position.y);
-	move = 0;
+	move = [0.0, 0.0, 0.0];
 	
 	obj.hide();
 	
@@ -270,6 +270,7 @@ function Player::update(){
 	}
 	
 	obj.unhide();
+	trace(move, position);
 }
 
 function Player::enemyUpdate(epos, emove, eframe, eangle_xz, eangle_step){
