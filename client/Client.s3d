@@ -149,7 +149,7 @@ function OnInit(params){
 				}
 				for(var i = 0 ; i < MAX_PLAYERS ; i++){
 					if(i != my_index)
-						aplayer[i].init([0, 1, 0], [30, 0, 30], level_obj_l);
+						aplayer[i].init([0, 1, 0], [-1, -1, -1], level_obj_l);
 				}
 				recv = true;				
 			}			

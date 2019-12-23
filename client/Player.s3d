@@ -86,7 +86,7 @@ function Player::init(col, pos, level_obj_l){
 	angle_xz = 0.0;
 	angle_step = 0.0;
 	position = pos;
-	move = 0;
+	move = [0.0, 0.0, 0.0];
 	old_position = position;
 	direction = [0.0, 0.0 , 1.0];
 	last_frame = 0;
