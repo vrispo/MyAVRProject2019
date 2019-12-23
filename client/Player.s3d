@@ -273,36 +273,48 @@ function Player::update(){
 }
 
 function Player::enemyUpdate(epos, emove, eframe, eangle_xz, eangle_step){
- var i = int(epos[0]);
- var j = int(epos[1]);
- var k = int(epos[2]);
- 
- last_frame = current_frame;
- current_frame = eframe;
- if ((current_frame == SWAT_START_WALK || current_frame == SWAT_END_WALK) && last_frame != current_frame)
-  step_fx.play();
- 
- move = emove;
- position = epos;
- direction = [sin(eangle_xz), 0, cos(eangle_xz)];
- angle_step = eangle_step;
- setRotation(eangle_xz);
- setPosition(position);
+	var i = int(epos[0]);
+	var j = int(epos[1]);
+	var k = int(epos[2]);
+	 
+	last_frame = current_frame;
+	current_frame = eframe;
+	if ((current_frame == SWAT_START_WALK || current_frame == SWAT_END_WALK) && last_frame != current_frame)
+		step_fx.play();
+	 
+	move = emove;
+	position = epos;
+	direction = [sin(eangle_xz), 0, cos(eangle_xz)];
+	angle_step = eangle_step;
+	setRotation(eangle_xz);
+	setPosition(position);
 }
 
 function Player::enemyInterpolate(){
- var i = int(position[0]);
- var j = int(position[1]);
- var k = int(position[2]);
- 
- last_frame = current_frame;
- current_frame = 0; //DA RAGIONARCI PER BENE
- if ((current_frame == SWAT_START_WALK || current_frame == SWAT_END_WALK) && last_frame != current_frame)
-  step_fx.play();
- 
- direction = [sin(angle_xz + angle_step), 0, cos(angle_xz + angle_step)];
- setRotation(angle_xz + angle_step);
- setPosition(position + move);
+	var i = int(position[0]);
+	var j = int(position[1]);
+	var k = int(position[2]);
+	 
+	direction = [sin(angle_xz + angle_step), 0, cos(angle_xz + angle_step)];
+	setRotation(angle_xz + angle_step);
+	setPosition(position + move);
+	 
+	last_frame = current_frame;
+	var scalar = move[0] * direction[0] + move[2] * direction[2];
+	var move_magn = move[0] * move[0] + move[2] * move[2];
+	if (scalar < 0){
+		current_frame--;
+		if (current_frame == SWAT_START_WALK){
+			current_frame = SWAT_END_WALK;
+			step_fx.play();
+		}
+	} else if ((scalar == 0 && move_magn != 0) || (scalar > 0)){
+		current_frame++;
+		if (current_frame == SWAT_END_WALK){
+			current_frame = SWAT_START_WALK;
+			step_fx.play();
+		}
+	}
 }
 
 function Player::firstPersonFixes(){
