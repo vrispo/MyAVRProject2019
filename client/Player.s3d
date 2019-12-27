@@ -60,7 +60,7 @@ class Player{
 	getYCollision();
 	setRotation(angle_xz);
 	update();
-	enemyUpdate(epos, emove, eframe, eangle_xz);
+	enemyUpdate(epos, emove, eframe, eangle_xz, enemy_gun);
 	enemyInterpolate();
 	wasd();
 	jump();
@@ -307,7 +307,7 @@ function Player::update(){
 	fp_obj.unhide();
 }
 
-function Player::enemyUpdate(epos, emove, eframe, eangle_xz){
+function Player::enemyUpdate(epos, emove, eframe, eangle_xz, enemy_gun){
 	last_frame = current_frame;
 	current_frame = eframe;
 	if ((current_frame == SWAT_START_WALK || current_frame == SWAT_END_WALK) && last_frame != current_frame)

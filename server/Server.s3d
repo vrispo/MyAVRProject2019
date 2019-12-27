@@ -219,6 +219,7 @@ function OnTimer(){
 			var move = received_data[4];
 			var frame = received_data[5];
 			var angle = received_data[6];
+			var gun = received_data[7];
 			
 			if(online_player[index].__get("ip") != ip_req){
 				/* send ack */
@@ -237,13 +238,14 @@ function OnTimer(){
 				mysend(ip_req, PDU);
 				
 				/*send the position to the other players */
-				PDU = array(6);
+				PDU = array(7);
 				PDU[0] = ENEMY_POSITION_PDU;
 				PDU[1] = index;
 				PDU[2] = position;
 				PDU[3] = move;
 				PDU[4] = frame;
 				PDU[5] = angle;
+				PDU[6] = gun;
 				
 				for(var i=0 ; i < MAX_PLAYERS ; i++){
 					if((i != index) && online_player[i].isConnected()){

@@ -211,7 +211,7 @@ function OnFrame(){
 	    if(current_updatetime - old_updatetime > 50){
 	    	old_updatetime = current_updatetime;
 	    	
-			var PDU = array(7);
+			var PDU = array(8);
 			PDU[0] = POSITION_UPDATE_PDU;
 			PDU[1] = my_ip;
 			PDU[2] = my_index;
@@ -219,6 +219,7 @@ function OnFrame(){
 			PDU[4] = aplayer[my_index].__get("move");
 			PDU[5] = aplayer[my_index].__get("current_frame");
 			PDU[6] = aplayer[my_index].__get("angle_xz");
+			PDU[7] = aplayer[my_index].__get("railgun_equipped");
 			mysend(server_ip, PDU);
 			
 			/*aspetto l'ack */
@@ -304,11 +305,12 @@ function OnTimer(){
 			var enemy_move = received_data[3];
 			var enemy_frame = received_data[4];
 			var enemy_angle = received_data[5];
+			var enemy_gun = received_data[6];
 			
 			is_enemy_updated[enemy_index] = true;
 			
 			online_player[enemy_index] = true;
-			aplayer[enemy_index].enemyUpdate(enemy_position, enemy_move, enemy_frame, enemy_angle);
+			aplayer[enemy_index].enemyUpdate(enemy_position, enemy_move, enemy_frame, enemy_angle, enemy_gun);
 			
 			/* send the ack
 			var PDU = array(2);
