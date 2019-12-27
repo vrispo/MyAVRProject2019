@@ -16,12 +16,19 @@ var step_fx;
 var start_fx;
 var level_obj_array;
 
+var sound_played = false;
+
 class Player{
 	var lower_mesh;
 	var upper_mesh;
 	var collision_box;
-	var weapon_mesh;
+	var rocket_mesh;
+	var railgun_mesh;
+	var rocket_obj;
+	var railgun_obj;
+	var railgun_equipped;
 	var obj;
+	var fp_obj;
 	var collision_obj;
 	var old_position;
 	var position;
@@ -46,7 +53,8 @@ class Player{
 	
 	init(col, pos, level_obj_l);
 	draw();
-	transparent_draw();
+	swapWeapon(num);
+	fp_draw();
 	isColliding();
 	setPosition(pos);
 	getYCollision();
@@ -57,7 +65,6 @@ class Player{
 	wasd();
 	jump();
 	updateY();
-	firstPersonFixes();
 };
 
 function Player::init(col, pos, level_obj_l){
@@ -72,18 +79,26 @@ function Player::init(col, pos, level_obj_l){
 	var collision_box_transparent = CVmMaterial();
 	collision_box_transparent.transparency = 0.0; //Set the collision box transparent
 	collision_box.setMaterial(collision_box_transparent);
-	weapon_mesh = CVmNewMesh("rocketl.aam");
-	weapon_mesh.scale(sf1);
+	rocket_mesh = CVmNewMesh("rocketl.aam");
+	railgun_mesh = CVmNewMesh("railgun.aam");
+	rocket_mesh.scale(sf1);
+	railgun_mesh.scale(sf1);
 	
 	var lower_obj = CVmObj(lower_mesh);
 	var upper_obj = CVmObj(upper_mesh);
-	var weapon_obj = CVmObj(weapon_mesh);
+	railgun_obj = CVmObj(railgun_mesh);
+	rocket_obj = CVmObj(rocket_mesh);
 	collision_obj = CVmObj(collision_box);
 	obj = CVmObj();
-	obj.addchild(upper_obj);
-	obj.addchild(lower_obj);
-	obj.addchild(weapon_obj);
+	obj.addChild(upper_obj);
+	obj.addChild(lower_obj);
+	obj.addChild(railgun_obj);
+	fp_obj = CVmObj();
+	fp_obj.addChild(railgun_obj);
+	fp_obj.addChild(rocket_obj);
+	rocket_obj.hide();
 	
+	railgun_equipped = true;
 	angle_xz = 0.0;
 	angle_step = 0.0;
 	old_angle_xz = 0.0;
@@ -101,31 +116,45 @@ function Player::init(col, pos, level_obj_l){
 	has_shot = false;
 	
 	obj.modulatematerials(color);	
+	fp_obj.modulatematerials(color);
 
 	shoot_fx = CVmVRawAV("shoot.wav");
 	step_fx = CVmVRawAV("step.wav");
 	start_fx = CVmVRawAV("Start.wav");
 	
-	start_fx.play(); //So it doesn't block
+	if (!sound_played){
+		start_fx.play(); //So it doesn't block
+		sound_played = true;
+	}
+		
 }
 
 function Player::draw(){
 	obj.draw(VR_FRAMENUMBER, current_frame);
 	collision_obj.draw();
-	if (has_shot)
-		my_bullet.draw();
 }
 
-function Player::transparent_draw(){
-	obj.draw();
+function Player::swapWeapon(num){
+	if (num == 2){
+		railgun_obj.hide();		
+		rocket_obj.unhide();
+		railgun_equipped = false;
+	} else {
+		rocket_obj.hide();	
+		railgun_obj.unhide();
+		railgun_equipped = true;	
+	}
+}
+
+function Player::fp_draw(){
+	fp_obj.draw(VR_FRAMENUMBER, SWAT_START_WALK);
 	collision_obj.draw();
 }
 
 function Player::isColliding(){
 	foreach (var t in level_obj_array)
 		if (collision_obj.isCollidingBBox(t))
-			return true;
-			
+			return true;			
 	return false;
 }
 
@@ -165,9 +194,8 @@ function Player::wasd(){
 		}
 	}
 	
-	if (!getYCollision()) {
+	if (!getYCollision())
 		updateY();
-	}
 }
 
 function Player::jump(){
@@ -195,6 +223,7 @@ function Player::updateY(){
 
 function Player::setPosition(pos){
 	obj.setPosition(pos);
+	fp_obj.setPosition(pos);
 	collision_obj.setPosition(pos);
 }
 
@@ -217,13 +246,14 @@ function Player::getYCollision(){
 }
 
 function Player::setRotation(angle_xz){
+	fp_obj.setRotation(angle_xz * 180.0 / PI, 0, 1, 0);
 	obj.setRotation(angle_xz * 180.0 / PI, 0, 1, 0);
 }
 
 function Player::update(){
-	move = [0.0, 0.0, 0.0];
+	fp_obj.hide();
 	
-	obj.hide();
+	move = [0.0, 0.0, 0.0];
 	
 	if (!isColliding())
 		old_position = position;
@@ -234,7 +264,6 @@ function Player::update(){
 		run = 1.0;
 	}
 	
-	// Andr
 	if (keyPressed("e"))
 		angle_xz -= 0.05;
 	else if (keyPressed("q"))
@@ -254,10 +283,14 @@ function Player::update(){
 	if (is_jumping)
 		updateY();
 		
+	if (keyPressed("1"))
+		swapWeapon(1);
+	if (keyPressed("2"))
+		swapWeapon(2);
+		
 	setRotation(angle_xz);
 	setPosition(position);
-		
-	transparent_draw();
+	
 	if (isColliding()){
 		if (is_jumping){
 			is_jumping = false;
@@ -268,7 +301,7 @@ function Player::update(){
 		setPosition(position);
 	}
 	
-	obj.unhide();
+	fp_obj.unhide();
 }
 
 function Player::enemyUpdate(epos, emove, eframe, eangle_xz){
@@ -310,9 +343,4 @@ function Player::enemyInterpolate(){
 			step_fx.play();
 		}
 	}
-}
-
-function Player::firstPersonFixes(){
-	obj.upperobj.hide();
-	obj.lowerobj.hide();
 }
