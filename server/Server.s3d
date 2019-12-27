@@ -71,8 +71,9 @@ function OnFrame(){
 	/* manage camera */
 	
 	var current_time = getTime();
-	if((current_time - old_time_online_check) > 1000){
-		/*controllo se c'è da mandare un messaggio di ping */
+	if((current_time - old_time_online_check) > 5000){
+		//controllo se c'è da mandare un messaggio di ping
+		old_time_online_check = current_time;
 		for(var i = 0 ; i < MAX_PLAYERS ; i++){
 			if(online_player[i].isConnected() && (alive[i] <= 0)){
 				var PDU = array(2);
@@ -82,14 +83,13 @@ function OnFrame(){
 					PDU[0] = PING;
 					PDU[1] = i;
 					mysend(online_player[i].__get("ip"), PDU);
-				}
-				else{
+				} else {
 					//is dead
 					online_player[i].Disconnection();
 					active_connection--;
 					outputln(str(i) + ": dead");
 					alive[i] = 0;
-					/* send to the other online player that the player x is disconnected from the game */
+					// send to the other online player that the player x is disconnected from the game 
 					PDU[0] = ENEMY_DISCONNECTION_PDU;
 					PDU[1] = i;
 					
@@ -97,8 +97,7 @@ function OnFrame(){
 						if((j != i) && online_player[j].isConnected())
 							mysend(online_player[j].__get("ip"), PDU);											
 				}
-			}
-			else{
+			} else {
 				alive[i] = 0;
 			}
 		}
@@ -135,6 +134,7 @@ function OnTimer(){
 				while(online_player[i].isConnected())
 					i++;
 				active_connection++;
+				alive[i] = 1;
 				online_player[i].connection(id_req, ip_req);
 				outputln(online_player[i].toString());
 				
@@ -262,8 +262,7 @@ function OnTimer(){
 							if(received_data != null)
 								if(received_data[0] == ACK)
 									recv = true;				
-					    }while(!recv);
-					    outputln("dio maledetto");	*/			
+					    }while(!recv);	*/			
 					}
 				}
 			}						
