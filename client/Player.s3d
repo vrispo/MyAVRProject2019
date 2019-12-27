@@ -90,7 +90,6 @@ function Player::init(col, pos, level_obj_l){
 	rocket_obj = CVmObj(rocket_mesh);
 	collision_obj = CVmObj(collision_box);
 	obj = CVmObj();
-	upper_obj.modulateMaterials(col);
 	lower_obj.modulateMaterials(col);
 	obj.addChild(upper_obj);
 	obj.addChild(lower_obj);
@@ -101,7 +100,7 @@ function Player::init(col, pos, level_obj_l){
 	rocket_obj.hide();
 	
 	railgun_equipped = true;
-	if (pos[0] == 2){
+	if (pos[2] == 2){
 		angle_xz = 0.0;
 		direction = [0.0, 0.0, 1.0];
 	} else {
