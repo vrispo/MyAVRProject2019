@@ -54,13 +54,14 @@ class Player{
 	init(col, pos, level_obj_l);
 	draw();
 	swapWeapon(num);
+	swapEnemyWeapon(rail);
 	fp_draw();
 	isColliding();
 	setPosition(pos);
 	getYCollision();
 	setRotation(angle_xz);
 	update();
-	enemyUpdate(epos, emove, eframe, eangle_xz, enemy_gun);
+	enemyUpdate(epos, emove, eframe, eangle_xz, egun);
 	enemyInterpolate();
 	wasd();
 	jump();
@@ -146,6 +147,16 @@ function Player::swapWeapon(num){
 		rocket_obj.hide();	
 		railgun_obj.unhide();
 		railgun_equipped = true;	
+	}
+}
+
+function Player::swapEnemyWeapon(rail){
+	if (rail){
+		railgun_obj.hide();		
+		rocket_obj.unhide();
+	} else {
+		rocket_obj.hide();	
+		railgun_obj.unhide();
 	}
 }
 
@@ -307,7 +318,7 @@ function Player::update(){
 	fp_obj.unhide();
 }
 
-function Player::enemyUpdate(epos, emove, eframe, eangle_xz, enemy_gun){
+function Player::enemyUpdate(epos, emove, eframe, eangle_xz, egun){
 	last_frame = current_frame;
 	current_frame = eframe;
 	if ((current_frame == SWAT_START_WALK || current_frame == SWAT_END_WALK) && last_frame != current_frame)
@@ -319,6 +330,7 @@ function Player::enemyUpdate(epos, emove, eframe, eangle_xz, enemy_gun){
 	old_angle_xz = angle_xz;
 	angle_xz = eangle_xz;
 	angle_step = (angle_xz - old_angle_xz) / 20;
+	swapEnemyWeapon(egun);
 	setRotation(angle_xz);
 	setPosition(position);
 }
