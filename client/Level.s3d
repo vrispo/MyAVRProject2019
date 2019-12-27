@@ -4,7 +4,9 @@ class level{
 	var level_obj;
 	var floor_mesh;
 	var wall_material;
+	var wall_ext_material;
 	var wall_texture;
+	var wall_ext_texture;
 	var floor_material;
 	var floor_texture;
 	init(level_textfile);
@@ -12,28 +14,49 @@ class level{
 };
 
 function level::init(level_textfile){
-	wall_texture = CVmTexture("mattoni03.png");
+	level_obj = array(0);
+	
+	wall_texture = CVmTexture("mattoni03.png");	
 	wall_material = CVmMaterial();
 	wall_material.setTexture(wall_texture);
-	wall_material.changetextureparams(VR_V_TILING, 3); //greater if you want smaller
-	level_obj = array(0);
+	wall_material.changetextureparams(VR_V_TILING, 3); //greater if you want smaller	
 	wall_mesh = CVmNewMesh(VRP_BOX);
-	wall_ext_mesh = CVmNewMesh(VRP_BOX);
 	wall_mesh.scale(1.0,1.0,1.0);
+	wall_mesh.modulatematerials(0.35, 0.35, 0.35);
 	wall_mesh.setMaterial(wall_material);
-	wall_ext_mesh.scale(1.0,5.0,1.0);
-	wall_ext_mesh.setMaterial(wall_material);
-	var f = loadfile(level_textfile);
 	
+	wall_ext_texture = CVmTexture("stonewall.png");
+	wall_ext_material = CVmMaterial();
+	wall_ext_material.setTexture(wall_ext_texture);
+	//wall_ext_material.changetextureparams(VR_V_TILING, 0.8); //greater if you want smaller
+	//wall_ext_material.changetextureparams(VR_U_TILING, 0.2);
+	wall_ext_mesh = CVmNewMesh(VRP_BOX);
+	wall_ext_mesh.setMaterial(wall_ext_material);
+	wall_ext_mesh.modulatematerials(0.35, 0.35, 0.35);
+
+	var f = loadfile(level_textfile);
+		
 	var num_rows = len(f);
 	var num_columns = len(f[0]);
 	
 	for(var i = 0; i < num_rows; i++){
 		for (var j = 0; j < num_columns; j++){
 			if (f[i][j] == "5"){
-				var t = CVmObj(wall_ext_mesh);
-				t.setposition(j, 0.0, i);
-				aadd(level_obj, t);
+				var t1 = CVmObj(wall_ext_mesh);
+				var t2 = CVmObj(wall_ext_mesh);
+				var t3 = CVmObj(wall_ext_mesh);
+				var t4 = CVmObj(wall_ext_mesh);
+				var t5 = CVmObj(wall_ext_mesh);
+				t1.setposition(j, 0.0, i);
+				aadd(level_obj, t1);
+				t2.setposition(j, 1.0, i);
+				aadd(level_obj, t2);
+				t3.setposition(j, 2.0, i);
+				aadd(level_obj, t3);
+				t4.setposition(j, 3.0, i);
+				aadd(level_obj, t4);
+				t5.setposition(j, 4.0, i);
+				aadd(level_obj, t5);
 			} else if (f[i][j] == "3"){
 				var t1 = CVmObj(wall_mesh);
 				var t2 = CVmObj(wall_mesh);
@@ -60,7 +83,7 @@ function level::init(level_textfile){
 	}
 
 	floor_material = CVmMaterial();
-	floor_texture = CVmTexture("MARMO.png");
+	floor_texture = CVmTexture("charcoal-2.jpg");
 	floor_material.setTexture(floor_texture);
 	floor_material.changetextureparams(VR_U_TILING,4);
 	floor_material.changetextureparams(VR_V_TILING,4);
@@ -69,7 +92,6 @@ function level::init(level_textfile){
 	floor_mesh.scale(num_columns, 1.0 , num_rows-3);
 	floor_mesh.translate(0.0, -1.0, 0.0);
 	floor_mesh.setmaterial(floor_material);
-	floor_mesh.modulatematerials(0,1,0,1); //green completely opaque
 }
 
 function level::draw(){

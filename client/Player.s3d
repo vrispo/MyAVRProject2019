@@ -90,6 +90,8 @@ function Player::init(col, pos, level_obj_l){
 	rocket_obj = CVmObj(rocket_mesh);
 	collision_obj = CVmObj(collision_box);
 	obj = CVmObj();
+	upper_obj.modulateMaterials(col);
+	lower_obj.modulateMaterials(col);
 	obj.addChild(upper_obj);
 	obj.addChild(lower_obj);
 	obj.addChild(railgun_obj);
@@ -99,13 +101,18 @@ function Player::init(col, pos, level_obj_l){
 	rocket_obj.hide();
 	
 	railgun_equipped = true;
-	angle_xz = 0.0;
+	if (pos[0] == 2){
+		angle_xz = 0.0;
+		direction = [0.0, 0.0, 1.0];
+	} else {
+		angle_xz = PI;
+		direction = [0.0, 0.0, -1.0];
+	}
 	angle_step = 0.0;
 	old_angle_xz = 0.0;
 	position = pos;
 	move = [0.0, 0.0, 0.0];
 	old_position = position;
-	direction = [0.0, 0.0 , 1.0];
 	last_frame = 0;
 	current_frame = SWAT_START_WALK;
 	run = 1.0;
@@ -114,9 +121,6 @@ function Player::init(col, pos, level_obj_l){
 	is_jumping = false;
 	is_ascending = false;
 	has_shot = false;
-	
-	obj.modulatematerials(color);	
-	fp_obj.modulatematerials(color);
 
 	shoot_fx = CVmVRawAV("shoot.wav");
 	step_fx = CVmVRawAV("step.wav");

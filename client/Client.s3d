@@ -50,8 +50,15 @@ var CamPos = [2.0, 3.0, 20.0]; 	// camera position
 
 /* Light globals */
 var Light0;
-var PosL = [16.0, 100.0, 16.0];	// default light position
-
+var PosL = [16.0, 20, 16.0];	// default light position
+var Light1;
+var PosL1 = [0.0, 20, 0.0];	
+var Light2;
+var PosL2 = [0.0, 20, 32.0];	
+var Light3;
+var PosL3 = [32.0, 20, 0.0];	
+var Light4;
+var PosL4 = [32.0, 20, 32.0];	
 
 /* Function declarations */
 function CameraMove();
@@ -73,7 +80,23 @@ function OnInit(params){
 	Light0 = CVmLight();
 	Light0.SetPosition(PosL);
 	Light0.SetDiffuse(1, 1, 1);
-	Light0.Enable();	
+	Light0.Enable();
+	Light1 = CVmLight();
+	Light1.SetPosition(PosL1);
+	Light1.SetDiffuse(1, 1, 1);
+	Light1.Enable();
+	Light2 = CVmLight();
+	Light2.SetPosition(PosL2);
+	Light2.SetDiffuse(1, 1, 1);
+	Light2.Enable();
+	Light3 = CVmLight();
+	Light3.SetPosition(PosL3);
+	Light3.SetDiffuse(1, 1, 1);
+	Light3.Enable();
+	Light4 = CVmLight();
+	Light4.SetPosition(PosL4);
+	Light4.SetDiffuse(1, 1, 1);
+	Light4.Enable();	
 
 	// TODO: put your initialization code here	
 	my_level = level();
