@@ -15,6 +15,7 @@
 #define POSITION_UPDATE_PDU 4
 #define ENEMY_POSITION_PDU 5
 #define ENEMY_DISCONNECTION_PDU 6
+#define PING 7
 
 #define OK 1
 #define ERR -1
@@ -33,6 +34,7 @@ var net_channel;
 var connected = false;
 
 var aplayer = array(MAX_PLAYERS);
+var aplayer_color = {[1,0,0],[0,1,0],[0,0,1],[1,1,0]};
 var online_player = array(MAX_PLAYERS);
 var my_index = 0;
 var is_enemy_updated = array(MAX_PLAYERS);
@@ -139,17 +141,17 @@ function OnInit(params){
 					connected = true;
 					server_ip = received_data[2];
 					my_index = received_data[3];
-					aplayer[my_index].init([1, 0, 0], received_data[4], level_obj_l);
+					aplayer[my_index].init(aplayer_color[my_index], received_data[4], level_obj_l);
 					online_player[my_index] = true;
 				}
 				else{
 					connected = false;
 					server_ip = received_data[2];
-					aplayer[my_index].init([1, 0, 0], [2, 0, 2], level_obj_l);				
+					aplayer[my_index].init(aplayer_color[my_index], [2, 0, 2], level_obj_l);				
 				}
 				for(var i = 0 ; i < MAX_PLAYERS ; i++){
 					if(i != my_index)
-						aplayer[i].init([0, 1, 0], [-1, -1, -1], level_obj_l);
+						aplayer[i].init(aplayer_color[i], [-1, -1, -1], level_obj_l);
 				}
 				recv = true;				
 			}			
@@ -180,55 +182,63 @@ function OnFrame(){
 	// TODO: put your drawing code here
 	aplayer[my_index].update();
 	
-	
-	/* send my position to the server */
-	var current_updatetime = getTime();//returns time in milliseconds
-    if(current_updatetime - old_updatetime > 50){
-    	old_updatetime = current_updatetime;
-    	
-		var PDU = array(7);
-		PDU[0] = POSITION_UPDATE_PDU;
-		PDU[1] = my_ip;
-		PDU[2] = my_index;
-		PDU[3] = aplayer[my_index].__get("position");
-		PDU[4] = aplayer[my_index].__get("move");
-		PDU[5] = aplayer[my_index].__get("current_frame");
-		PDU[6] = aplayer[my_index].__get("angle_xz");
-		mysend(server_ip, PDU);
-		
-		/*aspetto l'ack */
-		var address1 = "................";
-		var received_data;
-		var recv = false;
-		
-		var old_time = getTime();//returns time in milliseconds
-		do{		
-			var current_time = getTime();
-	    	if(current_time-old_time > 1000){
-	    		mysend(server_ip, PDU);
-	    		old_time = getTime();
-			} 
-			received_data = NetVarReceiveFrom(net_channel, &address1);	
-			if(received_data != null)
-				if(received_data[0] == ACK)
-					recv = true;				
-	    }while(!recv);
-    }
+	if(connected){
+		/* send my position to the server */
+		var current_updatetime = getTime();//returns time in milliseconds
+	    if(current_updatetime - old_updatetime > 50){
+	    	old_updatetime = current_updatetime;
+	    	
+			var PDU = array(7);
+			PDU[0] = POSITION_UPDATE_PDU;
+			PDU[1] = my_ip;
+			PDU[2] = my_index;
+			PDU[3] = aplayer[my_index].__get("position");
+			PDU[4] = aplayer[my_index].__get("move");
+			PDU[5] = aplayer[my_index].__get("current_frame");
+			PDU[6] = aplayer[my_index].__get("angle_xz");
+			mysend(server_ip, PDU);
+			
+			/*aspetto l'ack */
+			var address1 = "................";
+			var received_data;
+			var recv = false;
+			
+			var old_time = getTime();//returns time in milliseconds
+			do{		
+				var current_time = getTime();
+		    	if(current_time-old_time > 1000){
+		    		mysend(server_ip, PDU);
+		    		old_time = getTime();
+				} 
+				received_data = NetVarReceiveFrom(net_channel, &address1);	
+				if(received_data != null)
+					if(received_data[0] == ACK){
+						recv = true;
+						if(received_data[1] == ERR)
+							connected = false;
+					}								
+		    }while(!recv);
+	    }		
+	}
+
 	
 	
 	my_level.draw();
 	
-	/* if there is some enemy active I draw it */
-	for(var i=0 ; i < MAX_PLAYERS ; i++){
-		if((online_player[i]) && (i != my_index)){
-			if (!is_enemy_updated[i])
-				aplayer[i].enemyInterpolate();
-			else
-				is_enemy_updated[i] = false;
-			aplayer[i].draw();
-		}
+	if(connected){
+		/* if there is some enemy active I draw it */
+		for(var i=0 ; i < MAX_PLAYERS ; i++){
+			if((online_player[i]) && (i != my_index)){
+				if (!is_enemy_updated[i])
+					aplayer[i].enemyInterpolate();
+				else
+					is_enemy_updated[i] = false;
+				aplayer[i].draw();
+			}
+		}		
 	}
-	aplayer[my_index].draw();
+	
+	aplayer[my_index].fp_draw();
 	
 	CameraMove();
 	
@@ -257,7 +267,7 @@ function OnTimer(){
 	var address1 = "................";
 	var received_data = NetVarReceiveFrom(net_channel,&address1);
 	
-	if(received_data != NULL){
+	if((received_data != NULL) && connected){
 		if(received_data[0] == CONNECT_RESP_PDU){
 			/* the ack must been lost I send ack again*/
 			var PDU = array(2);
@@ -294,6 +304,12 @@ function OnTimer(){
 			PDU[0] = ACK;
 			PDU[1] = OK;
 			mysend(server_ip, PDU);*/
+		}
+		if(received_data[0] == PING){
+			var PDU = array(2);
+			PDU[0] = PING;
+			PDU[1] = my_index;
+			mysend(server_ip, PDU);			
 		}
 	}
 	

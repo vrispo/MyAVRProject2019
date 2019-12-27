@@ -13,6 +13,7 @@
 #define POSITION_UPDATE_PDU 4
 #define ENEMY_POSITION_PDU 5
 #define ENEMY_DISCONNECTION_PDU 6
+#define PING 7
 
 #define OK 1
 #define ERR -1
@@ -34,6 +35,8 @@ var active_connection;
 var online_player = array(4);
 var init_pos = {[2, 0, 2], [2, 0, 30], [30, 0, 30], [30, 0, 2]};
 
+var old_time_online_check;
+var alive = array(4);
 
 function OnDownload(){
 	// TODO: download your resources here
@@ -53,15 +56,54 @@ function OnInit(params){
 	
 	net_channel= NetCreateChannel(50023,"0.0.0.0",VR_NO_BLOCKING);
 	active_connection = 0;
-	for(var i=0 ; i<MAX_PLAYERS ; i++){
+	for(var i = 0 ; i < MAX_PLAYERS ; i++){
 		online_player[i] = Player();
 		online_player[i].init(i, init_pos[i]);
+		alive[i] = 0;
 	}
+	
+	old_time_online_check = getTime();
+	
 	SetTimeStep(1);
 }
 
 function OnFrame(){
 	/* manage camera */
+	
+	var current_time = getTime();
+	if((current_time - old_time_online_check) > 1000){
+		/*controllo se c'è da mandare un messaggio di ping */
+		for(var i = 0 ; i < MAX_PLAYERS ; i++){
+			if(online_player[i].isConnected() && (alive[i] <= 0)){
+				var PDU = array(2);
+				if(alive[i] == 0){
+					//send ping to check if is dead
+					alive[i] = -1;
+					PDU[0] = PING;
+					PDU[1] = i;
+					mysend(online_player[i].__get("ip"), PDU);
+				}
+				else{
+					//is dead
+					online_player[i].Disconnection();
+					active_connection--;
+					outputln(str(i) + ": dead");
+					alive[i] = 0;
+					/* send to the other online player that the player x is disconnected from the game */
+					PDU[0] = ENEMY_DISCONNECTION_PDU;
+					PDU[1] = i;
+					
+					for(var j=0 ; j < MAX_PLAYERS ; j++)
+						if((j != i) && online_player[j].isConnected())
+							mysend(online_player[j].__get("ip"), PDU);											
+				}
+			}
+			else{
+				alive[i] = 0;
+			}
+		}
+	}
+	
 	SceneBegin();
 
 	// TODO: put your drawing code here
@@ -136,6 +178,7 @@ function OnTimer(){
 			if((online_player[index_req].isConnected()) && (online_player[index_req].__Get("id") == id_req)){
 				online_player[index_req].Disconnection();
 				active_connection--;
+				alive[index_req] = 0;
 				outputln("disconnected");			
 			}
 			
@@ -177,43 +220,56 @@ function OnTimer(){
 			var frame = received_data[5];
 			var angle = received_data[6];
 			
-			outputln("received position from " + online_player[index].__get("id"));
-			/* send ack */
-			var PDU = array(2);
-			PDU[0] = ACK;
-			PDU[1] = OK;
-			mysend(ip_req, PDU);
-			
-			/*send the position to the other players */
-			PDU = array(6);
-			PDU[0] = ENEMY_POSITION_PDU;
-			PDU[1] = index;
-			PDU[2] = position;
-			PDU[3] = move;
-			PDU[4] = frame;
-			PDU[5] = angle;
-			
-			for(var i=0 ; i < MAX_PLAYERS ; i++){
-				if((i != index) && online_player[i].isConnected()){
-					mysend(online_player[i].__get("ip"), PDU);
-					outputln("sended position to " + online_player[i].__get("id"));
-					/*aspetto l'ack 
-					var recv = false;
-					var old_time = getTime();//returns time in milliseconds
-					do{		
-						var current_time = getTime();
-				    	if(current_time-old_time>1000){
-				    		mysend(online_player[i].__get("ip"), PDU);
-				    		old_time = getTime();
-						}
-						received_data = NetVarReceiveFrom(net_channel, &address1);	
-						if(received_data != null)
-							if(received_data[0] == ACK)
-								recv = true;				
-				    }while(!recv);
-				    outputln("dio maledetto");	*/			
+			if(online_player[index].__get("ip") != ip_req){
+				/* send ack */
+				var PDU = array(2);
+				PDU[0] = ACK;
+				PDU[1] = ERR;
+				mysend(ip_req, PDU);			
+			}
+			else{
+				outputln("received position from " + online_player[index].__get("id"));
+				alive[index] = 1;
+				/* send ack */
+				var PDU = array(2);
+				PDU[0] = ACK;
+				PDU[1] = OK;
+				mysend(ip_req, PDU);
+				
+				/*send the position to the other players */
+				PDU = array(6);
+				PDU[0] = ENEMY_POSITION_PDU;
+				PDU[1] = index;
+				PDU[2] = position;
+				PDU[3] = move;
+				PDU[4] = frame;
+				PDU[5] = angle;
+				
+				for(var i=0 ; i < MAX_PLAYERS ; i++){
+					if((i != index) && online_player[i].isConnected()){
+						mysend(online_player[i].__get("ip"), PDU);
+						outputln("sended position to " + online_player[i].__get("id"));
+						/*aspetto l'ack 
+						var recv = false;
+						var old_time = getTime();//returns time in milliseconds
+						do{		
+							var current_time = getTime();
+					    	if(current_time-old_time>1000){
+					    		mysend(online_player[i].__get("ip"), PDU);
+					    		old_time = getTime();
+							}
+							received_data = NetVarReceiveFrom(net_channel, &address1);	
+							if(received_data != null)
+								if(received_data[0] == ACK)
+									recv = true;				
+					    }while(!recv);
+					    outputln("dio maledetto");	*/			
+					}
 				}
 			}						
+		}
+		if(received_data[0] == PING){
+			alive[received_data[1]] = 1;
 		}
 	}
 }
