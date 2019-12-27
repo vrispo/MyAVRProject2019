@@ -10,6 +10,9 @@
 #define JUMP_HEIGHT 1.5
 #define JUMP_STEP 0.05
 #define Y_OFFSET [0.0, 0.1, 0.0]
+#define MAX_RAILGUN_BULLETS 20
+#define MAX_ROCKET_BULLETS 10
+#define MAX_BULLETS 40
 
 var shoot_fx;
 var step_fx;
@@ -25,7 +28,10 @@ class Player{
 	var rocket_mesh;
 	var railgun_mesh;
 	var rocket_obj;
+	var rocket_bullets;
 	var railgun_obj;
+	var railgun_bullets;
+	var bullets;
 	var railgun_equipped;
 	var obj;
 	var fp_obj;
@@ -69,6 +75,14 @@ class Player{
 };
 
 function Player::init(col, pos, level_obj_l){
+	bullets = array(MAX_BULLETS);
+	for(var i = 0; i < MAX_BULLETS; i++){
+		railgun_bullets[i] = bullet();
+		railgun_bullets[i].init([0,0,0], [0,0,0], [0,0,0], 0, 1, false);
+	}
+	railgun_bullets = MAX_RAILGUN_BULLETS;
+	rocket_bullets = MAX_ROCKET_BULLETS;
+		
 	level_obj_array = level_obj_l;
 	
 	lower_mesh = CVmNewMesh("swat_lower.aam");

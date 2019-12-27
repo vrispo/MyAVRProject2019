@@ -1,21 +1,40 @@
 class bullet{
+	var col;
+	var player_index;
 	var position;
 	var direction;
 	var speed;
+	var gun; // se 1 railgun se 2 rocket e di conseguenza inizializzo il resto dei valori
 	var mesh;
 	var obj;
-	init(pos,dir);
+	var damage;
+	var alive;
+	init(pos, dir, c, i, g, on);
 	update();
 	draw();
 };
 
-function bullet::init(pos,dir){
-	position = pos + [0,1,0];
+function bullet::init(pos, dir, c, i, g, on){
+	player_index = i;
+	position = pos;
 	direction = dir;
-	speed = 0.2;
-	mesh = cvmNewMesh(VRP_BOX);
-	mesh.scale(0.1);
+	gun = g;
+	mesh = cvmNewMesh(VRP_SPHERE);
+	if(g == 1){
+		//railgun
+		speed = 1;
+		damage = 1;
+		mesh.scale(0.1);
+	} else{
+		//rocket
+		speed = 0.5;
+		damage = 5;
+		mesh.scale(0.5);
+	}
+	alive = on;
+			
 	obj = CVmObj(mesh);
+	obj.modulateMaterials(c);
 	obj.SetPosition(position);
 }
 
