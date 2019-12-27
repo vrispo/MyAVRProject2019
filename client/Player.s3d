@@ -77,8 +77,8 @@ class Player{
 function Player::init(col, pos, level_obj_l){
 	bullets = array(MAX_BULLETS);
 	for(var i = 0; i < MAX_BULLETS; i++){
-		railgun_bullets[i] = bullet();
-		railgun_bullets[i].init([0,0,0], [0,0,0], [0,0,0], 0, 1, false);
+		bullets[i] = bullet();
+		bullets[i].init([0,0,0], [0,0,0], [0,0,0], 0, 1, false);
 	}
 	railgun_bullets = MAX_RAILGUN_BULLETS;
 	rocket_bullets = MAX_ROCKET_BULLETS;
