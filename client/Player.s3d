@@ -54,7 +54,7 @@ class Player{
 	init(col, pos, level_obj_l);
 	draw();
 	swapWeapon(num);
-	swapEnemyWeapon(rail);
+	swapEnemyWeapon();
 	fp_draw();
 	isColliding();
 	setPosition(pos);
@@ -95,6 +95,7 @@ function Player::init(col, pos, level_obj_l){
 	obj.addChild(upper_obj);
 	obj.addChild(lower_obj);
 	obj.addChild(railgun_obj);
+	obj.addChild(rocket_obj);
 	fp_obj = CVmObj();
 	fp_obj.addChild(railgun_obj);
 	fp_obj.addChild(rocket_obj);
@@ -150,8 +151,8 @@ function Player::swapWeapon(num){
 	}
 }
 
-function Player::swapEnemyWeapon(rail){
-	if (rail){
+function Player::swapEnemyWeapon(){
+	if (!railgun_equipped){
 		railgun_obj.hide();		
 		rocket_obj.unhide();
 	} else {
@@ -330,7 +331,8 @@ function Player::enemyUpdate(epos, emove, eframe, eangle_xz, egun){
 	old_angle_xz = angle_xz;
 	angle_xz = eangle_xz;
 	angle_step = (angle_xz - old_angle_xz) / 20;
-	swapEnemyWeapon(egun);
+	railgun_equipped = egun;
+	swapEnemyWeapon();
 	setRotation(angle_xz);
 	setPosition(position);
 }
