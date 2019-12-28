@@ -10,6 +10,7 @@
 #define JUMP_HEIGHT 1.5
 #define JUMP_STEP 0.05
 #define Y_OFFSET [0.0, 0.1, 0.0]
+#define Y_BULLET_OFFSET [0.0, 0.8, 0.0]
 #define MAX_RAILGUN_BULLETS 20
 #define MAX_ROCKET_BULLETS 10
 #define MAX_BULLETS 40
@@ -315,6 +316,11 @@ function Player::update(){
 		run = 1.0;
 	}
 	
+	var mouse_x = 0.0;
+	mouse_x += Mouse.DeltaX;
+	mouse_x /= 100;
+	angle_xz -= mouse_x;
+	
 	if (keyPressed("e"))
 		angle_xz -= 0.05;
 	else if (keyPressed("q"))
@@ -362,7 +368,7 @@ function Player::update(){
 	}
 	//controllo se ho sparato
 	var current_time = getTime();
-	if(keyPressed(VK_RETURN) && ((current_time - last_bullet_time) > 500)){
+	if(keyPressed(VK_LBUTTON) && ((current_time - last_bullet_time) > 500)){
 		trace(railgun_bullets);
 		trace(rocket_bullets);
 		last_bullet_time = current_time;
@@ -374,13 +380,14 @@ function Player::update(){
 					break;
 			}
 			if(i != MAX_BULLETS){
-				bullets[i].init(position, direction, color, my_index, 1, true, bullet_seq_num);
+				bullets[i].init(position + Y_BULLET_OFFSET, direction, color, my_index, 1, true, bullet_seq_num
+				);
 				railgun_bullets--;
 				hit_fx.play();
 				//faccio la send al server
 				var PDU = array(7);
 				PDU[0] = POSITION_BULLET_PDU;
-				PDU[1] = position;
+				PDU[1] = position + Y_BULLET_OFFSET;
 				PDU[2] = direction;
 				PDU[3] = color;
 				PDU[4] = my_index;
@@ -405,7 +412,7 @@ function Player::update(){
 						if(received_data[0] == ACK){
 							recv = true;
 						}								
-			    }while(!recv);
+			    } while(!recv);
 			}			
 		}
 		if(!railgun_equipped && (rocket_bullets > 0)){
@@ -420,7 +427,7 @@ function Player::update(){
 				//faccio la send al server
 				var PDU = array(7);
 				PDU[0] = POSITION_BULLET_PDU;
-				PDU[1] = position;
+				PDU[1] = position + Y_BULLET_OFFSET;
 				PDU[2] = direction;
 				PDU[3] = color;
 				PDU[4] = my_index;
@@ -450,7 +457,8 @@ function Player::update(){
 		}
 	}
 	//controllo se ho ricaricato
-	if(keyPressed(VK_UP)){
+	current_time = getTime();
+	if(keyPressed("r") && ((current_time - last_bullet_time) > 1000)){
 		if(railgun_equipped){
 			railgun_bullets = MAX_RAILGUN_BULLETS;
 		} else{
