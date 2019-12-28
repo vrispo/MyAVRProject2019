@@ -341,9 +341,7 @@ function OnTimer(){
 		if(received_data[0] == POSITION_BULLET_PDU){
 			aplayer[my_index].insertBullet(received_data[1], received_data[2], received_data[3], received_data[4], received_data[5], received_data[6]);			
 		}
-		if(received_data[0] == DELETE_BULLET_PDU){
-			//var p_ind = received_data[1];
-			//var seq_n = received_data[2];			
+		if(received_data[0] == DELETE_BULLET_PDU){		
 			aplayer[my_index].deleteBullet(received_data[1], received_data[2]);
 		}
 	}

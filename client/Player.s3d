@@ -85,6 +85,7 @@ class Player{
 	jump();
 	updateY();
 	insertBullet(pos, dir, c, i, g, seq);
+	deleteBullet(ind, seq);
 };
 
 function Player::init(col, pos, level_obj_l){
@@ -539,4 +540,13 @@ function Player::insertBullet(pos, dir, c, i, g, seq){
 			bullets[i].init(pos, dir, c, i, g, true, seq);
 		}		
 	}
+}
+
+function Player::deleteBullet(ind, seq){
+	for(var i = 0 ; i < MAX_BULLETS ;  i++){
+		if((bullets[i].isAlive()) && (bullets[i].__get("player_index") == ind) &&(bullets[i].__get("seq_number") == seq)){
+			bullets[i].__set("alive", false);
+			break;
+		}
+	}		
 }
