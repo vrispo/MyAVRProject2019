@@ -14,12 +14,22 @@
 #define MAX_ROCKET_BULLETS 10
 #define MAX_BULLETS 40
 
+#define ACK 3
+#define POSITION_BULLET_PDU 8
+
+var net_channel;
+var server_ip;
+var my_index = 0;
+
 var shoot_fx;
 var step_fx;
 var start_fx;
+var hit_fx;
 var level_obj_array;
 
 var sound_played = false;
+
+var last_bullet_time;
 
 class Player{
 	var lower_mesh;
@@ -75,6 +85,8 @@ class Player{
 };
 
 function Player::init(col, pos, level_obj_l){
+	last_bullet_time=getTime();
+	
 	bullets = array(MAX_BULLETS);
 	for(var i = 0; i < MAX_BULLETS; i++){
 		bullets[i] = bullet();
@@ -140,6 +152,9 @@ function Player::init(col, pos, level_obj_l){
 	shoot_fx = CVmVRawAV("shoot.wav");
 	step_fx = CVmVRawAV("step.wav");
 	start_fx = CVmVRawAV("Start.wav");
+	hit_fx = CVmVRawAV("hit.wav");
+	hit_fx.SetListenerVelocity([1.5 , 1.5 , 1.5]); //non fa nulla ?!
+	hit_fx.SetVelocity([1.5 , 1.5 , 1.5]);
 	
 	if (!sound_played){
 		start_fx.play(); //So it doesn't block
@@ -178,6 +193,12 @@ function Player::swapEnemyWeapon(){
 function Player::fp_draw(){
 	fp_obj.draw(VR_FRAMENUMBER, SWAT_START_WALK);
 	collision_obj.draw();
+	
+	for( var i = 0 ; i < MAX_BULLETS ; i++){
+		if(bullets[i].isAlive()){
+			bullets[i].draw();
+		}
+	}
 }
 
 function Player::isColliding(){
@@ -331,6 +352,105 @@ function Player::update(){
 	}
 	
 	fp_obj.unhide();
+	
+	//chiamo l'update dei proiettili a giro
+	for( var i = 0 ; i < MAX_BULLETS ; i++){
+		if(bullets[i].isAlive()){
+			bullets[i].update();
+		}
+	}
+	//controllo se ho sparato
+	var current_time = getTime();
+	if(keyPressed(VK_RETURN) && ((current_time - last_bullet_time) > 500)){
+		trace(railgun_bullets);
+		trace(rocket_bullets);
+		last_bullet_time = current_time;
+		if(railgun_equipped && (railgun_bullets > 0)){
+			var i = 0;
+			while(bullets[i].isAlive() && (i < MAX_BULLETS)){
+				i++;
+			}
+			if(!bullets[i].isAlive()){
+				bullets[i].init(position, direction, color, my_index, 1, true);
+				railgun_bullets--;
+				hit_fx.play();
+				//faccio la send al server
+				var PDU = array(6);
+				PDU[0] = POSITION_BULLET_PDU;
+				PDU[1] = position;
+				PDU[2] = direction;
+				PDU[3] = color;
+				PDU[4] = my_index;
+				PDU[5] = 1;
+				mysend(server_ip, PDU);
+				/*aspetto l'ack */
+				var address1 = "................";
+				var received_data;
+				var recv = false;
+				
+				var old_time = getTime();//returns time in milliseconds
+				do{		
+					var current_time = getTime();
+			    	if(current_time-old_time > 1000){
+			    		mysend(server_ip, PDU);
+			    		old_time = getTime();
+					} 
+					received_data = NetVarReceiveFrom(net_channel, &address1);	
+					if(received_data != null)
+						if(received_data[0] == ACK){
+							recv = true;
+						}								
+			    }while(!recv);
+			}			
+		}
+		if(!railgun_equipped && (rocket_bullets > 0)){
+			var i = 0;
+			while(bullets[i].isAlive() && (i < MAX_BULLETS)){
+				i++;
+			}
+			if(!bullets[i].isAlive()){
+				bullets[i].init(position, direction, color, my_index, 2, true);
+				rocket_bullets--;
+				//faccio la send al server
+				var PDU = array(6);
+				PDU[0] = POSITION_BULLET_PDU;
+				PDU[1] = position;
+				PDU[2] = direction;
+				PDU[3] = color;
+				PDU[4] = my_index;
+				PDU[5] = 2;
+				mysend(server_ip, PDU);
+				/*aspetto l'ack */
+				var address1 = "................";
+				var received_data;
+				var recv = false;
+				
+				var old_time = getTime();//returns time in milliseconds
+				do{		
+					var current_time = getTime();
+			    	if(current_time-old_time > 1000){
+			    		mysend(server_ip, PDU);
+			    		old_time = getTime();
+					} 
+					received_data = NetVarReceiveFrom(net_channel, &address1);	
+					if(received_data != null)
+						if(received_data[0] == ACK){
+							recv = true;
+						}								
+			    }while(!recv);
+			}	
+		}
+	}
+	//controllo se ho ricaricato
+	if(keyPressed(VK_UP)){
+		if(railgun_equipped){
+			railgun_bullets = MAX_RAILGUN_BULLETS;
+		} else{
+			rocket_bullets = MAX_ROCKET_BULLETS;
+		}
+		trace(railgun_bullets);
+		trace(rocket_bullets);		
+	}
 }
 
 function Player::enemyUpdate(epos, emove, eframe, eangle_xz, egun){

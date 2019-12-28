@@ -11,11 +11,12 @@
 #define CONNECT_REQ_PDU 0
 #define CONNECT_RESP_PDU 1
 #define DISCONNECT_REQ_PDU 2
-#define ACK 3
+//#define ACK 3 definita in player
 #define POSITION_UPDATE_PDU 4
 #define ENEMY_POSITION_PDU 5
 #define ENEMY_DISCONNECTION_PDU 6
 #define PING 7
+//#define POSITION_BULLET_PDU 8 definita in player
 
 #define OK 1
 #define ERR -1
@@ -30,17 +31,17 @@ SET SCENE_FAR  = 1000;
 // TODO: put your global variables here
 var my_id;
 var broadcast_address;
-var net_channel;
+//var net_channel; definita in player
 var connected = false;
 
 var aplayer = array(MAX_PLAYERS);
 var aplayer_color = {[1,0,0],[0,1,0],[0,0,1],[1,1,0]};
 var online_player = array(MAX_PLAYERS);
-var my_index = 0;
+//var my_index = 0; definita in player
 var is_enemy_updated = array(MAX_PLAYERS);
 
 var my_ip;
-var server_ip;
+//var server_ip; definita in player
 
 var level_obj_l;
 var my_level;
@@ -203,7 +204,7 @@ function OnFrame(){
 	SceneBegin();
 
 	// TODO: put your drawing code here
-	aplayer[my_index].update();
+	aplayer[my_index].update(server_ip);
 	
 	if(connected){
 		/* send my position to the server */

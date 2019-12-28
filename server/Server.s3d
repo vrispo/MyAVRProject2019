@@ -14,6 +14,7 @@
 #define ENEMY_POSITION_PDU 5
 #define ENEMY_DISCONNECTION_PDU 6
 #define PING 7
+#define POSITION_BULLET_PDU 8
 
 #define OK 1
 #define ERR -1
@@ -229,7 +230,7 @@ function OnTimer(){
 				mysend(ip_req, PDU);			
 			}
 			else{
-				outputln("received position from " + online_player[index].__get("id"));
+				//outputln("received position from " + online_player[index].__get("id"));
 				alive[index] = 1;
 				/* send ack */
 				var PDU = array(2);
@@ -272,6 +273,27 @@ function OnTimer(){
 		if(received_data[0] == PING){
 			alive[received_data[1]] = 1;
 		}
+		if(received_data[0] == POSITION_BULLET_PDU){
+			var pos = received_data[1];
+			var dir = received_data[2];
+			var col = received_data[3];
+			var ind = received_data[4];
+			var bullet = received_data[5];
+			
+			/* send ack */
+			var PDU = array(2);
+			PDU[0] = ACK;
+			PDU[1] = OK;
+			mysend(online_player[ind].__get("ip"), PDU);
+			
+			outputln("received bullet from: "+ str(ind) + " pos: " + str(pos[0]) + " " + str(pos[1]) + " " + str(pos[2]));
+			
+			/*se il server si salva e rimanda lo stesso pacchetto e nel frattempo è passato del tempo chi lo riceve
+			 * dopo calcola male la posizione attuale. Forse è meglio che ogni tanto i vari client mandano l'update 
+			 * della posizione dei proiettili che hanno attivi con la loro posizione attuale. Tanto il proiettile è
+			 * distinto dall'index e da un sequence number
+			 */	
+		}		
 	}
 }
 

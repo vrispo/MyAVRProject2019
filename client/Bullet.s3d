@@ -12,6 +12,7 @@ class bullet{
 	init(pos, dir, c, i, g, on);
 	update();
 	draw();
+	isAlive();
 };
 
 function bullet::init(pos, dir, c, i, g, on){
@@ -22,12 +23,12 @@ function bullet::init(pos, dir, c, i, g, on){
 	mesh = cvmNewMesh(VRP_SPHERE);
 	if(g == 1){
 		//railgun
-		speed = 1;
+		speed = 0.6;
 		damage = 1;
 		mesh.scale(0.1);
 	} else{
 		//rocket
-		speed = 0.5;
+		speed = 0.4;
 		damage = 5;
 		mesh.scale(0.5);
 	}
@@ -45,4 +46,8 @@ function bullet::update(){
 
 function bullet::draw(){
 	obj.draw();
+}
+
+function bullet::isAlive(){
+	return alive;
 }
