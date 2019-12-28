@@ -1,3 +1,6 @@
+var num_rows;
+var num_columns;
+
 class Level{
 	var wall_mesh;
 	var wall_ext_mesh;
@@ -15,28 +18,12 @@ function level::init(level_textfile){
 
 	var f = loadfile(level_textfile);
 		
-	var num_rows = len(f);
-	var num_columns = len(f[0]);
+	num_rows = len(f);
+	num_columns = len(f[0]);
 	
 	for(var i = 0; i < num_rows; i++){
 		for (var j = 0; j < num_columns; j++){
-			if (f[i][j] == "5"){
-				var t1 = CVmObj(wall_ext_mesh);
-				var t2 = CVmObj(wall_ext_mesh);
-				var t3 = CVmObj(wall_ext_mesh);
-				var t4 = CVmObj(wall_ext_mesh);
-				var t5 = CVmObj(wall_ext_mesh);
-				t1.setposition(j, 0.0, i);
-				aadd(level_obj, t1);
-				t2.setposition(j, 1.0, i);
-				aadd(level_obj, t2);
-				t3.setposition(j, 2.0, i);
-				aadd(level_obj, t3);
-				t4.setposition(j, 3.0, i);
-				aadd(level_obj, t4);
-				t5.setposition(j, 4.0, i);
-				aadd(level_obj, t5);
-			} else if (f[i][j] == "3"){
+			if (f[i][j] == "3"){
 				var t1 = CVmObj(wall_mesh);
 				var t2 = CVmObj(wall_mesh);
 				var t3 = CVmObj(wall_mesh);
@@ -64,7 +51,6 @@ function level::init(level_textfile){
 
 function level::draw(){
 	foreach (var t in level_obj){
-		t.hide();
 		t.draw();		
 	}
 }

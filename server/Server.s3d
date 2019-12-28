@@ -88,8 +88,8 @@ function OnInit(params){
 }
 
 function OnFrame(){
-	/* manage camera */
 	
+	SceneBegin();
 	//dead reckoning
 	var current_time = getTime();
 	if((current_time - old_time_online_check) > 5000){
@@ -124,24 +124,30 @@ function OnFrame(){
 		}
 	}
 	
+	level_l.draw();
+	
 	//chiamo l'update dei proiettili a giro e controllo collisione
 	for (var i = 0; i < MAX_BULLETS; i++){
 		if(bullets[i].isAlive()){
-			bullets[i].update();	
-			if (bullets[i].isCollidingBBox(level_l)){
-				// Veronica, creami un bel pacchetto di morte del proiettile, ed eliminalo dal buffer
-				var PDU = array(3);
-				PDU[0] = DELETE_BULLET_PDU;
-				PDU[1] = bullets[i].__get("player_index");
-				PDU[2] = bullets[i].__get("seq_number");
-				
-				for(var j = 0 ; j < MAX_PLAYERS ; j++){
-					if(online_player[j].isConnected())
-						mysend(online_player[j].__get("ip"), PDU);					
+			bullets[i].update();
+			var bull_pos = bullets[i].__get("position");
+			var t_lvl = level_l.__get("level_obj");
+			foreach (var t in t_lvl)
+				if (bullets[i].obj.isCollidingBBox(t) || bull_pos[0] >= num_rows || bull_pos[0] < 0 || bull_pos[2] >= num_columns || bull_pos[2] < 0 ){
+					outputln("collisione ambientale");
+					var PDU = array(3);
+					PDU[0] = DELETE_BULLET_PDU;
+					PDU[1] = bullets[i].__get("player_index");
+					PDU[2] = bullets[i].__get("seq_number");
+					
+					for(var j = 0 ; j < MAX_PLAYERS ; j++){
+						if(online_player[j].isConnected())
+							mysend(online_player[j].__get("ip"), PDU);					
+					}
+					
+					bullets[i].__set("alive", false);
+					break;
 				}
-				
-				bullets[i].__set("alive", false);
-			}
 		}
 	}
 	
@@ -165,10 +171,7 @@ function OnFrame(){
 				}
 			}
 		}		
-	}	
-	
-	SceneBegin();
-
+	}
 	// TODO: put your drawing code here
 	ConsoleText(CONSOLE_X_0, CONSOLE_Y_0, "Server IP address: " + my_ip);
 	for(var i=0 ; i < MAX_PLAYERS ; i++){

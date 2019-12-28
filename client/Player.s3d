@@ -370,11 +370,11 @@ function Player::update(){
 	//chiamo l'update dei proiettili a giro
 	for (var i = 0; i < MAX_BULLETS; i++){
 		if(bullets[i].isAlive()){
-			bullets[i].update();			
-			if (bullets[i].isCollidingBBox(hitbox_obj)){
+			bullets[i].update();		
+			if (bullets[i].obj.isCollidingBBox(hitbox_obj)){
+				outputln("ouch!");
 				// Gestione danno
 				// Da finire
-				// ASAP
 			}
 		}
 	}
@@ -434,7 +434,7 @@ function Player::update(){
 					break;
 			}
 			if(i != MAX_BULLETS){
-				bullets[i].init(position, direction, color, my_index, 2, true, bullet_seq_num);
+				bullets[i].init(position + Y_BULLET_OFFSET, direction, color, my_index, 2, true, bullet_seq_num);
 				rocket_bullets--;
 				//faccio la send al server
 				var PDU = array(7);
