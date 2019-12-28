@@ -1,4 +1,5 @@
-class bullet{
+// server Bullet
+class Bullet{
 	var col;
 	var player_index;
 	var position;
@@ -7,12 +8,10 @@ class bullet{
 	var gun; // se 1 railgun se 2 rocket e di conseguenza inizializzo il resto dei valori
 	var mesh;
 	var obj;
-	var damage;
 	var alive;
 	var seq_number;
 	init(pos, dir, c, i, g, on, seq);
 	update();
-	draw();
 	isAlive();
 };
 
@@ -26,27 +25,21 @@ function bullet::init(pos, dir, c, i, g, on, seq){
 	if(g == 1){
 		//railgun
 		speed = 0.6;
-		damage = 1;
 		mesh.scale(0.1);
 	} else{
 		//rocket
 		speed = 0.4;
-		damage = 5;
 		mesh.scale(0.5);
 	}
 	alive = on;
 			
 	obj = CVmObj(mesh);
-	obj.modulateMaterials(c);
 	obj.SetPosition(position);
 }
 
 function bullet::update(){
 	position += direction * speed;
 	obj.setposition(position);
-}
-
-function bullet::draw(){
 	obj.draw();
 }
 

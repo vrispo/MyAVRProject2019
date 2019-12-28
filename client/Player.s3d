@@ -317,11 +317,12 @@ function Player::update(){
 		run = 1.0;
 	}
 	
-	var mouse_x = 0.0;
-	mouse_x += Mouse.DeltaX;
-	mouse_x /= 100;
-	angle_xz -= mouse_x;
-	
+//	non funziona sul computer di veronica	 
+//	var mouse_x = 0.0;
+//	mouse_x += Mouse.DeltaX;
+//	mouse_x /= 100;
+//	angle_xz -= mouse_x;
+		
 	if (keyPressed("e"))
 		angle_xz -= 0.05;
 	else if (keyPressed("q"))
@@ -369,7 +370,7 @@ function Player::update(){
 	}
 	//controllo se ho sparato
 	var current_time = getTime();
-	if(keyPressed(VK_LBUTTON) && ((current_time - last_bullet_time) > 500)){
+	if((keyPressed(VK_LBUTTON) || keyPressed(VK_RETURN)) && ((current_time - last_bullet_time) > 500)){
 		trace(railgun_bullets);
 		trace(rocket_bullets);
 		last_bullet_time = current_time;
@@ -514,14 +515,14 @@ function Player::enemyInterpolate(){
 }
 
 function Player::insertBullet(pos, dir, c, i, g, seq){
-	var already_exist = false;
+	var already_exists = false;
 	for(var i = 0 ; i < MAX_BULLETS ;  i++){
-		if((bullets[i].isAlive()) && (bullets[i].__get("player_index") == i) &&(bullets[i].__get("seq_number") == seq )){
-			already_exist = true;
+		if((bullets[i].isAlive()) && (bullets[i].__get("player_index") == i) &&(bullets[i].__get("seq_number") == seq)){
+			already_exists = true;
 			break;
 		}
 	}	
-	if(!already_exist){
+	if(!already_exists){
 		var i;
 		for(i = 0 ; i < MAX_BULLETS ;  i++){
 			if(!bullets[i].isAlive())

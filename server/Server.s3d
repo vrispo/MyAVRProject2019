@@ -4,6 +4,7 @@
 #include "Player.s3d"
 #include "Networking.s3d"
 #include "Bullet.s3d"
+#include "Level.s3d"
 
 #define MAX_PLAYERS 4
 #define MAX_BULLETS 40
@@ -44,6 +45,8 @@ var alive = array(4);
 var bullets = array(MAX_BULLETS);
 var old_time_bullet_sent;
 
+var level_l;
+
 function OnDownload(){
 	// TODO: download your resources here
 	// E.g.: FileDownload("resource.ext");
@@ -60,7 +63,10 @@ function OnInit(params){
 	Outputln("\n");
 	//Outputln(my_ip);
 	
-	net_channel= NetCreateChannel(50023,"0.0.0.0",VR_NO_BLOCKING);
+	level_l = Level();
+	level_l.init("level1.txt");
+	
+	net_channel= NetCreateChannel(50023, "0.0.0.0", VR_NO_BLOCKING);
 	active_connection = 0;
 	for(var i = 0 ; i < MAX_PLAYERS ; i++){
 		online_player[i] = Player();
@@ -117,10 +123,13 @@ function OnFrame(){
 		}
 	}
 	
-	//chiamo l'update dei proiettili a giro
-	for( var i = 0 ; i < MAX_BULLETS ; i++){
+	//chiamo l'update dei proiettili a giro e controllo collisione
+	for (var i = 0; i < MAX_BULLETS; i++){
 		if(bullets[i].isAlive()){
-			bullets[i].update();
+			bullets[i].update();	
+			if (bullets[i].isCollidingBBox(level_l)){
+				// Veronica, creami un bel pacchetto di morte del proiettile, ed eliminalo dal buffer
+			}
 		}
 	}
 	

@@ -1,4 +1,4 @@
-class bullet{
+class Bullet{
 	var col;
 	var player_index;
 	var position;
@@ -37,7 +37,7 @@ function bullet::init(pos, dir, c, i, g, on, seq){
 	alive = on;
 			
 	obj = CVmObj(mesh);
-	obj.modulateMaterials(c);
+	//obj.modulateMaterials(c);
 	obj.SetPosition(position);
 }
 
