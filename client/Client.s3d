@@ -76,7 +76,7 @@ var failed_attempts = 0;
 
 function OnInit(params){
 	/* initialize camera */
-	//CameraGetCurrent().SetPosition(CamPos);
+	CameraGetCurrent().SetPosition(CamPos);
 
 	/* initialize light */
 	Light0 = CVmLight();
@@ -394,10 +394,10 @@ function OnExit(){
 
 // Camera manager (using mouse)
 function CameraMove(){  
-  //CameraMoveMouse_MBL_LC();
-  CameraGetCurrent().SetPosition(aplayer[my_index].__get("position") + CAMERA_OFFSET);
-  var temp_angle = aplayer[my_index].__get("angle_xz");
-  CameraGetCurrent().SetDirection([sin(temp_angle), 0, cos(temp_angle)]);
+  CameraMoveMouse_MBL_LC();
+//  CameraGetCurrent().SetPosition(aplayer[my_index].__get("position") + CAMERA_OFFSET);
+//  var temp_angle = aplayer[my_index].__get("angle_xz");
+//  CameraGetCurrent().SetDirection([sin(temp_angle), 0, cos(temp_angle)]);
 }
 
 

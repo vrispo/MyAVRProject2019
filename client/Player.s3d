@@ -36,6 +36,8 @@ var bullet_seq_num;
 class Player{
 	var lower_mesh;
 	var upper_mesh;
+	var lower_mesh_transp;
+	var upper_mesh_transp;
 	var collision_box;
 	var rocket_mesh;
 	var railgun_mesh;
@@ -46,7 +48,6 @@ class Player{
 	var railgun_equipped;
 	var obj;
 	var fp_obj;
-	var hitbox_obj;
 	var collision_obj;
 	var old_position;
 	var position;
@@ -108,9 +109,9 @@ function Player::init(col, pos, level_obj_l){
 	upper_mesh.scale(sf1);
 	collision_box = CVmNewMesh(VRP_CYLINDER);
 	collision_box.scale(COLLISION_SCALE);
-	var collision_box_transparent = CVmMaterial();
-	collision_box_transparent.transparency = 0.0; //Set the collision box transparent
-	collision_box.setMaterial(collision_box_transparent);
+	var transparent_material = CVmMaterial();
+	transparent_material.transparency = 0.0; //Set the material transparent
+	collision_box.setMaterial(transparent_material);
 	rocket_mesh = CVmNewMesh("rocketl.aam");
 	railgun_mesh = CVmNewMesh("railgun.aam");
 	rocket_mesh.scale(sf1);
@@ -127,11 +128,6 @@ function Player::init(col, pos, level_obj_l){
 	obj.addChild(lower_obj);
 	obj.addChild(railgun_obj);
 	obj.addChild(rocket_obj);
-	hitbox_obj = CVmObj();
-	hitbox_obj.addChild(upper_obj);
-	hitbox_obj.hide();
-	hitbox_obj.addChild(lower_obj);
-	hitbox_obj.hide();
 	fp_obj = CVmObj();
 	fp_obj.addChild(railgun_obj);
 	fp_obj.addChild(rocket_obj);
@@ -174,7 +170,6 @@ function Player::init(col, pos, level_obj_l){
 
 function Player::draw(){
 	obj.draw(VR_FRAMENUMBER, current_frame);
-	collision_obj.draw();
 }
 
 function Player::swapWeapon(num){
@@ -202,7 +197,6 @@ function Player::swapEnemyWeapon(){
 function Player::fp_draw(){
 	fp_obj.draw(VR_FRAMENUMBER, SWAT_START_WALK);
 	collision_obj.draw();
-	hitbox_obj.draw(VR_FRAMENUMBER, SWAT_START_WALK);
 	
 	foreach (var t in bullets)
 		if(t.isAlive())
@@ -306,6 +300,7 @@ function Player::getYCollision(){
 function Player::setRotation(angle_xz){
 	fp_obj.setRotation(angle_xz * 180.0 / PI, 0, 1, 0);
 	obj.setRotation(angle_xz * 180.0 / PI, 0, 1, 0);
+	collision_obj.setPosition(angle_xz * 180.0 / PI, 0, 1, 0);
 }
 
 function Player::update(){
@@ -370,24 +365,23 @@ function Player::update(){
 	//chiamo l'update dei proiettili a giro
 	for (var i = 0; i < MAX_BULLETS; i++){
 		if(bullets[i].isAlive()){
-			bullets[i].update();		
-			if (bullets[i].obj.isCollidingBBox(hitbox_obj)){
+			bullets[i].update();
+			var bull_index = bullets[i].__get("player_index");
+			if (bullets[i].obj.isCollidingBBox(collision_obj) && bull_index != my_index){
 				outputln("ouch!");
+				bullets[i].__set("alive", false);
+				// Send pacchetto eliminazione bullet
 				// Gestione danno
-				// Da finire
 			}
 		}
 	}
 	//controllo se ho sparato
 	var current_time = getTime();
 	if((keyPressed(VK_LBUTTON) || keyPressed(VK_RETURN)) && ((current_time - last_bullet_time) > 500)){
-		trace(railgun_bullets);
-		trace(rocket_bullets);
 		last_bullet_time = current_time;
 		if(railgun_equipped && (railgun_bullets > 0)){
 			var i = 0;
-			for(i = 0 ; i < MAX_BULLETS ;  i++){
-				trace(i);
+			for(i = 0; i < MAX_BULLETS;  i++){
 				if(!bullets[i].isAlive())
 					break;
 			}
