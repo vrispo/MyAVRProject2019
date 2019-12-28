@@ -22,8 +22,6 @@ var net_channel;
 var server_ip;
 var my_index = 0;
 
-var bullet_seq_num;
-
 var shoot_fx;
 var step_fx;
 var start_fx;
@@ -31,7 +29,9 @@ var hit_fx;
 var level_obj_array;
 var sound_played = false;
 
+var bullets;
 var last_bullet_time;
+var bullet_seq_num;
 
 class Player{
 	var lower_mesh;
@@ -43,10 +43,10 @@ class Player{
 	var rocket_bullets;
 	var railgun_obj;
 	var railgun_bullets;
-	var bullets;
 	var railgun_equipped;
 	var obj;
 	var fp_obj;
+	var hitbox_obj;
 	var collision_obj;
 	var old_position;
 	var position;
@@ -88,7 +88,7 @@ class Player{
 };
 
 function Player::init(col, pos, level_obj_l){
-	last_bullet_time=getTime();
+	last_bullet_time = getTime();
 	bullet_seq_num = 0;
 	
 	bullets = array(MAX_BULLETS);
@@ -126,6 +126,11 @@ function Player::init(col, pos, level_obj_l){
 	obj.addChild(lower_obj);
 	obj.addChild(railgun_obj);
 	obj.addChild(rocket_obj);
+	hitbox_obj = CVmObj();
+	hitbox_obj.addChild(upper_obj);
+	hitbox_obj.hide();
+	hitbox_obj.addChild(lower_obj);
+	hitbox_obj.hide();
 	fp_obj = CVmObj();
 	fp_obj.addChild(railgun_obj);
 	fp_obj.addChild(rocket_obj);
@@ -196,12 +201,11 @@ function Player::swapEnemyWeapon(){
 function Player::fp_draw(){
 	fp_obj.draw(VR_FRAMENUMBER, SWAT_START_WALK);
 	collision_obj.draw();
+	hitbox_obj.draw(VR_FRAMENUMBER, SWAT_START_WALK);
 	
-	for( var i = 0 ; i < MAX_BULLETS ; i++){
-		if(bullets[i].isAlive()){
-			bullets[i].draw();
-		}
-	}
+	foreach (var t in bullets)
+		if(t.isAlive())
+			t.draw();
 }
 
 function Player::isColliding(){
@@ -363,9 +367,14 @@ function Player::update(){
 	fp_obj.unhide();
 	
 	//chiamo l'update dei proiettili a giro
-	for( var i = 0 ; i < MAX_BULLETS ; i++){
+	for (var i = 0; i < MAX_BULLETS; i++){
 		if(bullets[i].isAlive()){
-			bullets[i].update();
+			bullets[i].update();			
+			if (bullets[i].isCollidingBBox(hitbox_obj)){
+				// Gestione danno
+				// Da finire
+				// ASAP
+			}
 		}
 	}
 	//controllo se ho sparato
@@ -465,9 +474,7 @@ function Player::update(){
 			railgun_bullets = MAX_RAILGUN_BULLETS;
 		} else{
 			rocket_bullets = MAX_ROCKET_BULLETS;
-		}
-		trace(railgun_bullets);
-		trace(rocket_bullets);		
+		}	
 	}
 }
 
