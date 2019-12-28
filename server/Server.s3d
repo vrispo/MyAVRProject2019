@@ -18,6 +18,7 @@
 #define ENEMY_DISCONNECTION_PDU 6
 #define PING 7
 #define POSITION_BULLET_PDU 8
+#define DELETE_BULLET_PDU 9
 
 #define OK 1
 #define ERR -1
@@ -129,6 +130,17 @@ function OnFrame(){
 			bullets[i].update();	
 			if (bullets[i].isCollidingBBox(level_l)){
 				// Veronica, creami un bel pacchetto di morte del proiettile, ed eliminalo dal buffer
+				var PDU = array(3);
+				PDU[0] = DELETE_BULLET_PDU;
+				PDU[1] = bullets[i].__get("player_index");
+				PDU[2] = bullets[i].__get("seq_number");
+				
+				for(var j = 0 ; j < MAX_PLAYERS ; j++){
+					if(online_player[j].isConnected())
+						mysend(online_player[j].__get("ip"), PDU);					
+				}
+				
+				bullets[i].__set("alive", false);
 			}
 		}
 	}

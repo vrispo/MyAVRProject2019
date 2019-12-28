@@ -17,6 +17,7 @@
 #define ENEMY_DISCONNECTION_PDU 6
 #define PING 7
 //#define POSITION_BULLET_PDU 8 definita in player
+#define DELETE_BULLET_PDU 9
 
 #define OK 1
 #define ERR -1
@@ -339,6 +340,11 @@ function OnTimer(){
 		}
 		if(received_data[0] == POSITION_BULLET_PDU){
 			aplayer[my_index].insertBullet(received_data[1], received_data[2], received_data[3], received_data[4], received_data[5], received_data[6]);			
+		}
+		if(received_data[0] == DELETE_BULLET_PDU){
+			//var p_ind = received_data[1];
+			//var seq_n = received_data[2];			
+			aplayer[my_index].deleteBullet(received_data[1], received_data[2]);
 		}
 	}
 	
