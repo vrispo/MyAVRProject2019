@@ -84,6 +84,7 @@ class Player{
 	wasd();
 	jump();
 	updateY();
+	insertBullet(pos, dir, c, i, g, seq);
 };
 
 function Player::init(col, pos, level_obj_l){
@@ -509,5 +510,25 @@ function Player::enemyInterpolate(){
 			current_frame = SWAT_START_WALK;
 			step_fx.play();
 		}
+	}
+}
+
+function Player::insertBullet(pos, dir, c, i, g, seq){
+	var already_exist = false;
+	for(var i = 0 ; i < MAX_BULLETS ;  i++){
+		if((bullets[i].isAlive()) && (bullets[i].__get("player_index") == i) &&(bullets[i].__get("seq_number") == seq )){
+			already_exist = true;
+			break;
+		}
+	}	
+	if(!already_exist){
+		var i;
+		for(i = 0 ; i < MAX_BULLETS ;  i++){
+			if(!bullets[i].isAlive())
+				break;
+		}
+		if(i != MAX_BULLETS){
+			bullets[i].init(pos, dir, c, i, g, true, seq);
+		}		
 	}
 }

@@ -337,6 +337,9 @@ function OnTimer(){
 			PDU[1] = my_index;
 			mysend(server_ip, PDU);			
 		}
+		if(received_data[0] == POSITION_BULLET_PDU){
+			aplayer[my_index].insertBullet(received_data[1], received_data[2], received_data[3], received_data[4], received_data[5], received_data[6]);			
+		}
 	}
 	
 }

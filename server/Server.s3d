@@ -42,6 +42,7 @@ var old_time_online_check;
 var alive = array(4);
 
 var bullets = array(MAX_BULLETS);
+var old_time_bullet_sent;
 
 function OnDownload(){
 	// TODO: download your resources here
@@ -68,6 +69,8 @@ function OnInit(params){
 	}
 	
 	old_time_online_check = getTime();
+	
+	old_time_bullet_sent = getTime();
 	bullets = array(MAX_BULLETS);
 	for(var i = 0; i < MAX_BULLETS; i++){
 		bullets[i] = bullet();
@@ -80,6 +83,7 @@ function OnInit(params){
 function OnFrame(){
 	/* manage camera */
 	
+	//dead reckoning
 	var current_time = getTime();
 	if((current_time - old_time_online_check) > 5000){
 		//controllo se c'è da mandare un messaggio di ping
@@ -112,6 +116,35 @@ function OnFrame(){
 			}
 		}
 	}
+	
+	//chiamo l'update dei proiettili a giro
+	for( var i = 0 ; i < MAX_BULLETS ; i++){
+		if(bullets[i].isAlive()){
+			bullets[i].update();
+		}
+	}
+	
+	//guardo se devo fare il resend periodico dei proiettili
+	current_time = getTime();
+	if((current_time - old_time_bullet_sent) > 500){
+		for(var i = 0; i < MAX_BULLETS; i++){
+			if(bullets[i].isAlive()){
+				var PDU = array(7);
+				PDU[0] = POSITION_BULLET_PDU;
+				PDU[1] = bullets[i].__get("position");
+				PDU[2] = bullets[i].__get("direction");
+				PDU[3] = bullets[i].__get("col");
+				PDU[4] = bullets[i].__get("player_index");
+				PDU[5] = bullets[i].__get("gun");
+				PDU[6] = bullets[i].__get("seq_number");
+				
+				for(var j = 0 ; j < MAX_PLAYERS ; j++){
+					if(online_player[j].isConnected())
+						mysend(online_player[j].__get("ip"), PDU);					
+				}
+			}
+		}		
+	}	
 	
 	SceneBegin();
 
@@ -298,11 +331,21 @@ function OnTimer(){
 			
 			outputln("received bullet from: "+ str(ind) + " seq_num: " + str(seq_number)+ " pos: " + str(pos[0]) + " " + str(pos[1]) + " " + str(pos[2]));
 			
-			/*se il server si salva e rimanda lo stesso pacchetto e nel frattempo è passato del tempo chi lo riceve
-			 * dopo calcola male la posizione attuale. Forse è meglio che ogni tanto i vari client mandano l'update 
-			 * della posizione dei proiettili che hanno attivi con la loro posizione attuale. Tanto il proiettile è
-			 * distinto dall'index e da un sequence number
-			 */	
+			//il server si salva il proiettile
+			var i = 0;
+			for(i = 0 ; i < MAX_BULLETS ;  i++){
+				if(!bullets[i].isAlive())
+					break;
+			}
+			if(i != MAX_BULLETS){
+				bullets[i].init(pos, dir, col, ind, bullet, true, seq_number);
+			}
+			//mando il proiettile agli altri
+			for(var i=0 ; i < MAX_PLAYERS ; i++){
+				if((i != ind) && online_player[i].isConnected()){
+					mysend(online_player[i].__get("ip"), received_data);
+				}
+			}
 		}		
 	}
 }
