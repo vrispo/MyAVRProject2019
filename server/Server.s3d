@@ -3,8 +3,10 @@
 
 #include "Player.s3d"
 #include "Networking.s3d"
+#include "Bullet.s3d"
 
 #define MAX_PLAYERS 4
+#define MAX_BULLETS 40
 
 #define CONNECT_REQ_PDU 0
 #define CONNECT_RESP_PDU 1
@@ -39,6 +41,8 @@ var init_pos = {[2, 0, 2], [2, 0, 30], [30, 0, 30], [30, 0, 2]};
 var old_time_online_check;
 var alive = array(4);
 
+var bullets = array(MAX_BULLETS);
+
 function OnDownload(){
 	// TODO: download your resources here
 	// E.g.: FileDownload("resource.ext");
@@ -64,6 +68,11 @@ function OnInit(params){
 	}
 	
 	old_time_online_check = getTime();
+	bullets = array(MAX_BULLETS);
+	for(var i = 0; i < MAX_BULLETS; i++){
+		bullets[i] = bullet();
+		bullets[i].init([0,0,0], [0,0,0], [0,0,0], 0, 1, false, -1);
+	}
 	
 	SetTimeStep(1);
 }
@@ -279,6 +288,7 @@ function OnTimer(){
 			var col = received_data[3];
 			var ind = received_data[4];
 			var bullet = received_data[5];
+			var seq_number = received_data[6];
 			
 			/* send ack */
 			var PDU = array(2);
@@ -286,7 +296,7 @@ function OnTimer(){
 			PDU[1] = OK;
 			mysend(online_player[ind].__get("ip"), PDU);
 			
-			outputln("received bullet from: "+ str(ind) + " pos: " + str(pos[0]) + " " + str(pos[1]) + " " + str(pos[2]));
+			outputln("received bullet from: "+ str(ind) + " seq_num: " + str(seq_number)+ " pos: " + str(pos[0]) + " " + str(pos[1]) + " " + str(pos[2]));
 			
 			/*se il server si salva e rimanda lo stesso pacchetto e nel frattempo è passato del tempo chi lo riceve
 			 * dopo calcola male la posizione attuale. Forse è meglio che ogni tanto i vari client mandano l'update 

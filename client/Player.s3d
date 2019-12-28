@@ -21,12 +21,13 @@ var net_channel;
 var server_ip;
 var my_index = 0;
 
+var bullet_seq_num;
+
 var shoot_fx;
 var step_fx;
 var start_fx;
 var hit_fx;
 var level_obj_array;
-
 var sound_played = false;
 
 var last_bullet_time;
@@ -86,11 +87,12 @@ class Player{
 
 function Player::init(col, pos, level_obj_l){
 	last_bullet_time=getTime();
+	bullet_seq_num = 0;
 	
 	bullets = array(MAX_BULLETS);
 	for(var i = 0; i < MAX_BULLETS; i++){
 		bullets[i] = bullet();
-		bullets[i].init([0,0,0], [0,0,0], [0,0,0], 0, 1, false);
+		bullets[i].init([0,0,0], [0,0,0], [0,0,0], 0, 1, false, -1);
 	}
 	railgun_bullets = MAX_RAILGUN_BULLETS;
 	rocket_bullets = MAX_ROCKET_BULLETS;
@@ -153,8 +155,7 @@ function Player::init(col, pos, level_obj_l){
 	step_fx = CVmVRawAV("step.wav");
 	start_fx = CVmVRawAV("Start.wav");
 	hit_fx = CVmVRawAV("hit.wav");
-	hit_fx.SetListenerVelocity([1.5 , 1.5 , 1.5]); //non fa nulla ?!
-	hit_fx.SetVelocity([1.5 , 1.5 , 1.5]);
+	hit_fx.SetFrequency(50000);
 	
 	if (!sound_played){
 		start_fx.play(); //So it doesn't block
@@ -367,22 +368,26 @@ function Player::update(){
 		last_bullet_time = current_time;
 		if(railgun_equipped && (railgun_bullets > 0)){
 			var i = 0;
-			while(bullets[i].isAlive() && (i < MAX_BULLETS)){
-				i++;
+			for(i = 0 ; i < MAX_BULLETS ;  i++){
+				trace(i);
+				if(!bullets[i].isAlive())
+					break;
 			}
-			if(!bullets[i].isAlive()){
-				bullets[i].init(position, direction, color, my_index, 1, true);
+			if(i != MAX_BULLETS){
+				bullets[i].init(position, direction, color, my_index, 1, true, bullet_seq_num);
 				railgun_bullets--;
 				hit_fx.play();
 				//faccio la send al server
-				var PDU = array(6);
+				var PDU = array(7);
 				PDU[0] = POSITION_BULLET_PDU;
 				PDU[1] = position;
 				PDU[2] = direction;
 				PDU[3] = color;
 				PDU[4] = my_index;
 				PDU[5] = 1;
+				PDU[6] = bullet_seq_num;
 				mysend(server_ip, PDU);
+				bullet_seq_num = (bullet_seq_num + 1) % MAX_BULLETS;
 				/*aspetto l'ack */
 				var address1 = "................";
 				var received_data;
@@ -405,21 +410,24 @@ function Player::update(){
 		}
 		if(!railgun_equipped && (rocket_bullets > 0)){
 			var i = 0;
-			while(bullets[i].isAlive() && (i < MAX_BULLETS)){
-				i++;
+			for(i = 0 ; i < MAX_BULLETS ;  i++){
+				if(!bullets[i].isAlive())
+					break;
 			}
-			if(!bullets[i].isAlive()){
-				bullets[i].init(position, direction, color, my_index, 2, true);
+			if(i != MAX_BULLETS){
+				bullets[i].init(position, direction, color, my_index, 2, true, bullet_seq_num);
 				rocket_bullets--;
 				//faccio la send al server
-				var PDU = array(6);
+				var PDU = array(7);
 				PDU[0] = POSITION_BULLET_PDU;
 				PDU[1] = position;
 				PDU[2] = direction;
 				PDU[3] = color;
 				PDU[4] = my_index;
 				PDU[5] = 2;
+				PDU[6] = bullet_seq_num;
 				mysend(server_ip, PDU);
+				bullet_seq_num = (bullet_seq_num + 1) % MAX_BULLETS;
 				/*aspetto l'ack */
 				var address1 = "................";
 				var received_data;
