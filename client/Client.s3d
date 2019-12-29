@@ -3,7 +3,7 @@
 #include <Camera.s3d.h>
 
 #include "Networking.s3d"
-#include "player.s3d"
+#include "Player.s3d"
 #include "Level.s3d"
 
 #define MAX_PLAYERS 4
@@ -273,6 +273,10 @@ function OnFrame(){
 	
 	CameraMove();
 	aplayer[my_index].fp_draw();
+	
+	
+	ConsoleColor([255, 255, 255, 1]);
+	ConsoleText(0.495, 0.45, "+");		
 	
 	
 	if(!connected){

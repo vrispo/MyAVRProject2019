@@ -407,14 +407,13 @@ function Player::update(){
 				hit_fx.play();
 				life -= bullets[i].__get("damage");
 				if (life <= 0){
-					var killer = bullets[i].__get("player_index");
 					position = [-10, -10, -10];
 					setPosition(position);
 					fp_draw_only();
-					// Pacchetto morte
-					var PDU = array(2);
+					var PDU = array(3);
 					PDU[0] = KILL_PDU;
-					PDU[1] = killer;
+					PDU[1] = bullets[i].__get("player_index");
+					PDU[2] = bullets[i].__get("seq_number");
 					mysend(server_ip, PDU);
 					/*aspetto l'ack */
 					var address1 = "................";
@@ -433,6 +432,7 @@ function Player::update(){
 							if(received_data[0] == KILL_ACK_PDU){
 								position = received_data[1];
 								recv = true;
+								life = 10;
 							}								
 				    } while(!recv);					
 				}
@@ -442,8 +442,8 @@ function Player::update(){
 	//controllo se ho sparato
 	var current_time = getTime();
 	if((keyPressed(VK_LBUTTON) || keyPressed(VK_RETURN)) && ((current_time - last_bullet_time) > 500)){
-		last_bullet_time = current_time;
-		if(railgun_equipped && (railgun_bullets > 0)){
+		if(railgun_equipped && (railgun_bullets > 0)){			
+			last_bullet_time = current_time;
 			var i = 0;
 			for(i = 0; i < MAX_BULLETS;  i++){
 				if(!bullets[i].isAlive())
@@ -486,6 +486,7 @@ function Player::update(){
 			}			
 		}
 		if(!railgun_equipped && (rocket_bullets > 0)){
+			last_bullet_time = current_time;
 			var i = 0;
 			for(i = 0 ; i < MAX_BULLETS ;  i++){
 				if(!bullets[i].isAlive())
