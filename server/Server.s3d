@@ -134,7 +134,7 @@ function OnFrame(){
 			var t_lvl = level_l.__get("level_obj");
 			foreach (var t in t_lvl)
 				if (bullets[i].obj.isCollidingBBox(t) || bull_pos[0] >= num_rows || bull_pos[0] < 0 || bull_pos[2] >= num_columns || bull_pos[2] < 0 ){
-					outputln("collisione ambientale");
+//					outputln("collisione ambientale");
 					var PDU = array(3);
 					PDU[0] = DELETE_BULLET_PDU;
 					PDU[1] = bullets[i].__get("player_index");
@@ -317,21 +317,7 @@ function OnTimer(){
 				for(var i=0 ; i < MAX_PLAYERS ; i++){
 					if((i != index) && online_player[i].isConnected()){
 						mysend(online_player[i].__get("ip"), PDU);
-						outputln("sended position to " + online_player[i].__get("id"));
-						/*aspetto l'ack 
-						var recv = false;
-						var old_time = getTime();//returns time in milliseconds
-						do{		
-							var current_time = getTime();
-					    	if(current_time-old_time>1000){
-					    		mysend(online_player[i].__get("ip"), PDU);
-					    		old_time = getTime();
-							}
-							received_data = NetVarReceiveFrom(net_channel, &address1);	
-							if(received_data != null)
-								if(received_data[0] == ACK)
-									recv = true;				
-					    }while(!recv);	*/			
+//						outputln("sended position to " + online_player[i].__get("id"));		
 					}
 				}
 			}						
@@ -353,7 +339,7 @@ function OnTimer(){
 			PDU[1] = OK;
 			mysend(online_player[ind].__get("ip"), PDU);
 			
-			outputln("received bullet from: "+ str(ind) + " seq_num: " + str(seq_number)+ " pos: " + str(pos[0]) + " " + str(pos[1]) + " " + str(pos[2]));
+//			outputln("received bullet from: "+ str(ind) + " seq_num: " + str(seq_number)+ " pos: " + str(pos[0]) + " " + str(pos[1]) + " " + str(pos[2]));
 			
 			//il server si salva il proiettile
 			var i = 0;

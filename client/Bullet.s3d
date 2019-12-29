@@ -25,7 +25,8 @@ function bullet::init(pos, dir, c, i, g, on, seq){
 	position = pos;
 	direction = dir;
 	gun = g;
-	mesh = cvmNewMesh(VRP_SPHERE);
+	col = c;
+	mesh = CVmNewMesh(VRP_SPHERE);
 	if(g == 1){
 		//railgun
 		speed = 0.6;
@@ -39,8 +40,8 @@ function bullet::init(pos, dir, c, i, g, on, seq){
 	}
 	alive = on;
 			
+	//mesh.modulateMaterials(col);
 	obj = CVmObj(mesh);
-	//obj.modulateMaterials(c);
 	obj.SetPosition(position);
 }
 
