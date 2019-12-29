@@ -492,6 +492,7 @@ function Player::update(){
 			if(i != MAX_BULLETS){
 				bullets[i].init(position + Y_BULLET_OFFSET, direction, color, my_index, 2, true, bullet_seq_num);
 				rocket_bullets--;
+				shoot_fx.play();
 				//faccio la send al server
 				var PDU = array(7);
 				PDU[0] = POSITION_BULLET_PDU;
