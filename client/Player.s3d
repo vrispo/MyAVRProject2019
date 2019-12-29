@@ -88,7 +88,7 @@ class Player{
 	wasd();
 	jump();
 	updateY();
-	insertBullet(pos, dir, c, i, g, seq);
+	insertBullet(pos, dir, c, ind, g, seq);
 	deleteBullet(ind, seq);
 };
 
@@ -576,10 +576,10 @@ function Player::enemyInterpolate(){
 	}
 }
 
-function Player::insertBullet(pos, dir, c, i, g, seq){
+function Player::insertBullet(pos, dir, c, ind, g, seq){
 	var already_exists = false;
 	for(var i = 0 ; i < MAX_BULLETS ;  i++){
-		if((bullets[i].isAlive()) && (bullets[i].__get("player_index") == i) &&(bullets[i].__get("seq_number") == seq)){
+		if((bullets[i].isAlive()) && (bullets[i].__get("player_index") == ind) &&(bullets[i].__get("seq_number") == seq)){
 			already_exists = true;
 			bullets[i].__set("last_validation", getTime());
 			break;

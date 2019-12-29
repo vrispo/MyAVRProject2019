@@ -413,7 +413,7 @@ function OnTimer(){
 			PDU[1] = OK;
 			mysend(address1, PDU);
 			
-			var p_ind = received_data[0];
+			var p_ind = received_data[1];
 			score[p_ind]++;			
 		}	
 	}
