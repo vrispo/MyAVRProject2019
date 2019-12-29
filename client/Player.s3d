@@ -544,7 +544,7 @@ function Player::insertBullet(pos, dir, c, i, g, seq){
 	for(var i = 0 ; i < MAX_BULLETS ;  i++){
 		if((bullets[i].isAlive()) && (bullets[i].__get("player_index") == i) &&(bullets[i].__get("seq_number") == seq)){
 			already_exists = true;
-			bullets[i].__set("validation_time", getTime());
+			bullets[i].__set("last_validation", getTime());
 			break;
 		}
 	}	
