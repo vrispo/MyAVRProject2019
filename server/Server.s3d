@@ -407,18 +407,31 @@ function OnTimer(){
 				}
 			}
 		}
-		if( received_data[0] == KILL_PDU){
-			var pos =[(rand(num_rows-2)+1), 0, (rand(num_columns-2)+1)];
+		if (received_data[0] == KILL_PDU){
+			received_data[0] = DELETE_BULLET_PDU;
+			var p_index = received_data[1];
+			var seq_n = received_data[2];
+			score[p_index]++;			
+			
+			for(var i = 0 ; i < MAX_BULLETS ; i++){
+				if(bullets[i].isAlive() && (bullets[i].__get("player_index") == p_index) && (bullets[i].__get("seq_number") == seq_n)){
+					bullets[i].__set("alive", false);
+					for(var j=0 ; j < MAX_PLAYERS ; j++){
+						if(online_player[j].isConnected()){
+							mysend(online_player[j].__get("ip"), received_data);
+						}
+					}					
+				}
+			}
+					
+			var pos =[(rand(num_rows-3)+1.5), 0, (rand(num_columns-3)+1.5)];
 			if(val(f[pos[0]][pos[2]]) != 0)
 				pos[1] = val(f[pos[0]][pos[2]]) + 0.001;
 			/* send new position */
 			var PDU = array(2);
-			PDU[0] = ACK;
+			PDU[0] = KILL_ACK_PDU;
 			PDU[1] = pos;
 			mysend(address1, PDU);
-			
-			var p_ind = received_data[1];
-			score[p_ind]++;			
 		}	
 	}
 }
