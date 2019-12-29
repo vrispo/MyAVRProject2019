@@ -54,6 +54,9 @@ var score = array(MAX_PLAYERS);
 var score_ids = array(MAX_PLAYERS);
 /* Camera globals */
 var CamPos = [2.0, 3.0, 20.0]; 	// camera position
+var Window = CVmWebBrowser();
+var fs = false;
+var last_fs;
 
 /* Light globals */
 var Light0;
@@ -189,8 +192,7 @@ function OnInit(params){
 			}			
 		}
 		if (failed_attempts >= 10){
-			var Window = CVmWebBrowser();
-			Window.Quit();
+			Quit();
 		}						
     } while (!recv);
 
@@ -202,6 +204,8 @@ function OnInit(params){
 	
 	/* Set onTimer 10 times faster than on frame */
 	SetTimeStep(1);
+	
+	last_fs = getTime();
 }
 
 var old_updatetime = 0;
@@ -210,7 +214,15 @@ function OnFrame(){
 	/* manage camera */
 
 	SceneBegin();
-
+	
+	
+	var current_time = getTime();
+	if(keyPressed("h") && ((current_time - last_fs) > 500)){
+		fs = !fs;		
+		Window.Fullscreen(fs);
+		last_fs = current_time;
+	}
+	
 	// TODO: put your drawing code here
 	aplayer[my_index].update(server_ip);
 	
