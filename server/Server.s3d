@@ -183,9 +183,18 @@ function OnFrame(){
 	//mando i punteggi
 	current_time = getTime();
 	if((current_time - old_time_score_sent) > 500){
-		var PDU = array(2);
+		var ids = array(MAX_PLAYERS);
+		for(var i = 0 ; i < MAX_PLAYERS; i++){
+			if(online_player[i].isConnected())
+				ids[i] = online_player[i].__get("id");
+			else
+				ids[i] = "not online";
+		}
+		var PDU = array(3);
 		PDU[0] = SCORE_PDU;
 		PDU[1] = score;
+		PDU[2] = ids;
+		
 
 		for(var j = 0 ; j < MAX_PLAYERS ; j++)
 			if(online_player[j].isConnected())

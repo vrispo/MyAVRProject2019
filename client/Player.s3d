@@ -18,6 +18,7 @@
 #define ACK 3
 #define POSITION_BULLET_PDU 8
 #define DELETE_BULLET_PDU 9
+#define KILL_PDU 10
 
 var net_channel;
 var server_ip;
@@ -408,6 +409,28 @@ function Player::update(){
 					setPosition(position);
 					fp_draw_only();
 					// Pacchetto morte
+					var PDU = array(2);
+					PDU[0] = KILL_PDU;
+					PDU[1] = killer;
+					mysend(server_ip, PDU);
+					/*aspetto l'ack */
+					var address1 = "................";
+					var received_data;
+					var recv = false;
+					
+					var old_time = getTime();//returns time in milliseconds
+					do{		
+						var current_time = getTime();
+				    	if(current_time-old_time > 1000){
+				    		mysend(server_ip, PDU);
+				    		old_time = getTime();
+						} 
+						received_data = NetVarReceiveFrom(net_channel, &address1);	
+						if(received_data != null)
+							if(received_data[0] == ACK){
+								recv = true;
+							}								
+				    } while(!recv);					
 				}
 			}
 		}

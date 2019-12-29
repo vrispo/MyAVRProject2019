@@ -18,6 +18,8 @@
 #define PING 7
 //#define POSITION_BULLET_PDU 8 definita in player
 //#define DELETE_BULLET_PDU 9 definita in player
+//#define KILL_PDU 10 definita in player
+#define SCORE_PDU 11
 
 #define OK 1
 #define ERR -1
@@ -47,6 +49,8 @@ var my_ip;
 var level_obj_l;
 var my_level;
 
+var score = array(MAX_PLAYERS);
+var score_ids = array(MAX_PLAYERS);
 /* Camera globals */
 var CamPos = [2.0, 3.0, 20.0]; 	// camera position
 
@@ -109,6 +113,8 @@ function OnInit(params){
 		aplayer[i] = player();
 		online_player[i] = false;
 		is_enemy_updated[i] = false;
+		score[i] = 0;
+		score_ids[i] = "null";
 	}
 	
 	var CurDir = getcurrentdir();
@@ -274,7 +280,18 @@ function OnFrame(){
 	}
 	else{
 		ConsoleColor([0, 255, 0, 1]);
-		ConsoleText(0.02, 0.96, "You (" + my_id + ") are online!");		
+		ConsoleText(0.02, 0.96, "You (" + my_id + ") are online!");
+		var y = 0.96;
+		for(var i = 0 ; i < MAX_PLAYERS ; i++){
+			if( i != my_index)
+				ConsoleText(0.85, y, "Player " + score_ids[i] + ": " + str(score[i]));
+			else
+				ConsoleText(0.85, y, "Player " + my_id + ": " + str(score[i]));
+			y-=0.04;
+		}
+		ConsoleText(0.02, 0.1, "Vita: " + str(aplayer[my_index].__get("life")));
+		ConsoleText(0.02, 0.06, "Railgun bullets: " + str(aplayer[my_index].__get("railgun_bullets")));
+		ConsoleText(0.02, 0.02, "Rocket bullets: " + str(aplayer[my_index].__get("rocket_bullets")));			
 	}	
 	SceneEnd();
 }
@@ -343,6 +360,10 @@ function OnTimer(){
 		}
 		if(received_data[0] == DELETE_BULLET_PDU){		
 			aplayer[my_index].deleteBullet(received_data[1], received_data[2]);
+		}
+		if(received_data[0] == SCORE_PDU){
+			score = received_data[1];
+			score_ids = received_data[2];
 		}
 	}
 	
