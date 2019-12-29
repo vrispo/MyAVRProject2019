@@ -162,7 +162,6 @@ function Player::init(col, pos, level_obj_l){
 	step_fx = CVmVRawAV("step.wav");
 	start_fx = CVmVRawAV("Start.wav");
 	hit_fx = CVmVRawAV("hit.wav");
-	hit_fx.SetFrequency(50000);
 	
 	if (!sound_played){
 		start_fx.play(); //So it doesn't block
@@ -401,7 +400,7 @@ function Player::update(){
 							recv = true;				
 			    }while(!recv);		
 								
-				outputln("ouch!");
+				hit_fx.play();
 				life -= bullets[i].__get("damage");
 				if (life <= 0){
 					var killer = bullets[i].__get("player_index");
@@ -449,7 +448,7 @@ function Player::update(){
 				bullets[i].init(position + Y_BULLET_OFFSET, direction, color, my_index, 1, true, bullet_seq_num
 				);
 				railgun_bullets--;
-				hit_fx.play();
+				shoot_fx.play();
 				//faccio la send al server
 				var PDU = array(7);
 				PDU[0] = POSITION_BULLET_PDU;
@@ -592,7 +591,8 @@ function Player::insertBullet(pos, dir, c, ind, g, seq){
 				break;
 		}
 		if(i != MAX_BULLETS){
-			bullets[i].init(pos, dir, c, i, g, true, seq);
+			bullets[i].init(pos, dir, c, ind, g, true, seq);
+			shoot_fx.play();
 		}		
 	}
 }
