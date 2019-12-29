@@ -68,14 +68,15 @@ class Player{
 	var is_jumping;
 	var is_ascending;
 	var my_bullet;
-	var has_shot;
 	var color;
+	var life;
 	
 	init(col, pos, level_obj_l);
 	draw();
+	fp_draw();
+	fp_draw_only();
 	swapWeapon(num);
 	swapEnemyWeapon();
-	fp_draw();
 	isColliding();
 	setPosition(pos);
 	getYCollision();
@@ -152,9 +153,9 @@ function Player::init(col, pos, level_obj_l){
 	run = 1.0;
 	color = col;
 	jump_target = pos[1];
+	life = 10;
 	is_jumping = false;
 	is_ascending = false;
-	has_shot = false;
 
 	shoot_fx = CVmVRawAV("shoot.wav");
 	step_fx = CVmVRawAV("step.wav");
@@ -202,6 +203,11 @@ function Player::fp_draw(){
 	foreach (var t in bullets)
 		if(t.isAlive())
 			t.draw();
+}
+
+function Player::fp_draw_only(){
+	fp_obj.draw(VR_FRAMENUMBER, SWAT_START_WALK);
+	collision_obj.draw();
 }
 
 function Player::isColliding(){
@@ -369,7 +375,6 @@ function Player::update(){
 			bullets[i].update();
 			var bull_index = bullets[i].__get("player_index");
 			if (bullets[i].obj.isCollidingBBox(collision_obj) && bull_index != my_index){
-				outputln("ouch!");
 				bullets[i].__set("alive", false);
 				// Send pacchetto eliminazione bullet
 				var PDU = array(3);
@@ -383,7 +388,7 @@ function Player::update(){
 				var received_data;
 				
 				var old_time = getTime();
-				do{		
+				do{	
 					var current_time = getTime();
 			    	if(current_time-old_time>1000){
 			    		mysend(server_ip, PDU);
@@ -393,8 +398,17 @@ function Player::update(){
 					if(received_data != null)
 						if(received_data[0] == ACK)
 							recv = true;				
-			    }while(!recv);			
-				// Gestione danno
+			    }while(!recv);		
+								
+				outputln("ouch!");
+				life -= bullets[i].__get("damage");
+				if (life <= 0){
+					var killer = bullets[i].__get("player_index");
+					position = [-10, -10, -10];
+					setPosition(position);
+					fp_draw_only();
+					// Pacchetto morte
+				}
 			}
 		}
 	}

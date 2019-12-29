@@ -264,9 +264,9 @@ function OnFrame(){
 		}		
 	}
 	
+	CameraMove();
 	aplayer[my_index].fp_draw();
 	
-	CameraMove();
 	
 	if(!connected){
 		ConsoleColor([255, 0, 0, 1]);
