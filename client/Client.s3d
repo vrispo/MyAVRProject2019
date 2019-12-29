@@ -20,6 +20,7 @@
 //#define DELETE_BULLET_PDU 9 definita in player
 //#define KILL_PDU 10 definita in player
 #define SCORE_PDU 11
+//#define KILL_ACK_PDU 12
 
 #define OK 1
 #define ERR -1

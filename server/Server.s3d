@@ -21,6 +21,7 @@
 #define DELETE_BULLET_PDU 9
 #define KILL_PDU 10
 #define SCORE_PDU 11
+#define KILL_ACK_PDU 12
 
 #define OK 1
 #define ERR -1
@@ -407,10 +408,13 @@ function OnTimer(){
 			}
 		}
 		if( received_data[0] == KILL_PDU){
-			/* send ack */
+			var pos =[(rand(num_rows-2)+1), 0, (rand(num_columns-2)+1)];
+			if(val(f[pos[0]][pos[2]]) != 0)
+				pos[1] = val(f[pos[0]][pos[2]]) + 0.001;
+			/* send new position */
 			var PDU = array(2);
 			PDU[0] = ACK;
-			PDU[1] = OK;
+			PDU[1] = pos;
 			mysend(address1, PDU);
 			
 			var p_ind = received_data[1];

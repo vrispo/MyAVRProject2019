@@ -1,5 +1,6 @@
 var num_rows;
 var num_columns;
+var f;
 
 class Level{
 	var wall_mesh;
@@ -16,7 +17,7 @@ function level::init(level_textfile){
 	
 	wall_ext_mesh = CVmNewMesh(VRP_BOX);
 
-	var f = loadfile(level_textfile);
+	f = loadfile(level_textfile);
 		
 	num_rows = len(f);
 	num_columns = len(f[0]);
