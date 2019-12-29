@@ -442,8 +442,8 @@ function Player::update(){
 	//controllo se ho sparato
 	var current_time = getTime();
 	if((keyPressed(VK_LBUTTON) || keyPressed(VK_RETURN)) && ((current_time - last_bullet_time) > 500)){
-		last_bullet_time = current_time;
-		if(railgun_equipped && (railgun_bullets > 0)){
+		if(railgun_equipped && (railgun_bullets > 0)){			
+			last_bullet_time = current_time;
 			var i = 0;
 			for(i = 0; i < MAX_BULLETS;  i++){
 				if(!bullets[i].isAlive())
@@ -486,6 +486,7 @@ function Player::update(){
 			}			
 		}
 		if(!railgun_equipped && (rocket_bullets > 0)){
+			last_bullet_time = current_time;
 			var i = 0;
 			for(i = 0 ; i < MAX_BULLETS ;  i++){
 				if(!bullets[i].isAlive())

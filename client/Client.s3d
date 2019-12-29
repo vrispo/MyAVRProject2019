@@ -275,6 +275,10 @@ function OnFrame(){
 	aplayer[my_index].fp_draw();
 	
 	
+	ConsoleColor([255, 255, 255, 1]);
+	ConsoleText(0.495, 0.45, "+");		
+	
+	
 	if(!connected){
 		ConsoleColor([255, 0, 0, 1]);
 		ConsoleText(0.5, 0.5, "You are not online!");		
