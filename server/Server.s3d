@@ -370,7 +370,22 @@ function OnTimer(){
 					mysend(online_player[i].__get("ip"), received_data);
 				}
 			}
-		}		
+		}
+		if(received_data[0] == DELETE_BULLET_PDU){
+			var p_index = received_data[1];
+			var seq_n = received_data[2];
+			
+			for(var i = 0 ; i < MAX_BULLETS ; i++){
+				if(bullets[i].isAlive() && (bullets[i].__get("player_index") == p_index) && (bullets[i].__get("seq_number") == seq_n)){
+					bullets[i].__set("alive", false);
+					for(var j=0 ; j < MAX_PLAYERS ; j++){
+						if(online_player[j].isConnected()){
+							mysend(online_player[j].__get("ip"), received_data);
+						}
+					}					
+				}
+			}
+		}	
 	}
 }
 

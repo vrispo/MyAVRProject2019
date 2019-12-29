@@ -17,7 +17,7 @@
 #define ENEMY_DISCONNECTION_PDU 6
 #define PING 7
 //#define POSITION_BULLET_PDU 8 definita in player
-#define DELETE_BULLET_PDU 9
+//#define DELETE_BULLET_PDU 9 definita in player
 
 #define OK 1
 #define ERR -1
@@ -76,7 +76,7 @@ var failed_attempts = 0;
 
 function OnInit(params){
 	/* initialize camera */
-	CameraGetCurrent().SetPosition(CamPos);
+//	CameraGetCurrent().SetPosition(CamPos);
 
 	/* initialize light */
 	Light0 = CVmLight();
@@ -394,10 +394,10 @@ function OnExit(){
 
 // Camera manager (using mouse)
 function CameraMove(){  
-  CameraMoveMouse_MBL_LC();
-//  CameraGetCurrent().SetPosition(aplayer[my_index].__get("position") + CAMERA_OFFSET);
-//  var temp_angle = aplayer[my_index].__get("angle_xz");
-//  CameraGetCurrent().SetDirection([sin(temp_angle), 0, cos(temp_angle)]);
+//  CameraMoveMouse_MBL_LC();
+	CameraGetCurrent().SetPosition(aplayer[my_index].__get("position") + CAMERA_OFFSET);
+	var temp_angle = aplayer[my_index].__get("angle_xz");
+	CameraGetCurrent().SetDirection([sin(temp_angle), 0, cos(temp_angle)]);
 }
 
 

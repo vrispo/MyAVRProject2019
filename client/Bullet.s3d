@@ -1,3 +1,4 @@
+// class Bullet client side
 class Bullet{
 	var col;
 	var player_index;
@@ -10,6 +11,7 @@ class Bullet{
 	var damage;
 	var alive;
 	var seq_number;
+	var last_validation;
 	init(pos, dir, c, i, g, on, seq);
 	update();
 	draw();
@@ -17,6 +19,7 @@ class Bullet{
 };
 
 function bullet::init(pos, dir, c, i, g, on, seq){
+	last_validation = getTime();
 	seq_number = seq;
 	player_index = i;
 	position = pos;
@@ -42,6 +45,9 @@ function bullet::init(pos, dir, c, i, g, on, seq){
 }
 
 function bullet::update(){
+	var current_time = getTime();
+	if(current_time - last_validation > 550)
+		alive = false;	
 	position += direction * speed;
 	obj.setposition(position);
 }

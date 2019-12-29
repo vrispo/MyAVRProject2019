@@ -17,6 +17,7 @@
 
 #define ACK 3
 #define POSITION_BULLET_PDU 8
+#define DELETE_BULLET_PDU 9
 
 var net_channel;
 var server_ip;
@@ -371,6 +372,28 @@ function Player::update(){
 				outputln("ouch!");
 				bullets[i].__set("alive", false);
 				// Send pacchetto eliminazione bullet
+				var PDU = array(3);
+				PDU[0] = DELETE_BULLET_PDU;
+				PDU[1] = bullets[i].__get("player_index");
+				PDU[2] = bullets[i].__get("seq_number");
+				MySend(server_ip, PDU);
+				/*aspetto l'ack */
+				var recv = false;
+				var address1 = "................";
+				var received_data;
+				
+				var old_time = getTime();
+				do{		
+					var current_time = getTime();
+			    	if(current_time-old_time>1000){
+			    		mysend(server_ip, PDU);
+			    		old_time = getTime();
+					} 
+					received_data = NetVarReceiveFrom(net_channel, &address1);	
+					if(received_data != null)
+						if(received_data[0] == ACK)
+							recv = true;				
+			    }while(!recv);			
 				// Gestione danno
 			}
 		}
@@ -521,6 +544,7 @@ function Player::insertBullet(pos, dir, c, i, g, seq){
 	for(var i = 0 ; i < MAX_BULLETS ;  i++){
 		if((bullets[i].isAlive()) && (bullets[i].__get("player_index") == i) &&(bullets[i].__get("seq_number") == seq)){
 			already_exists = true;
+			bullets[i].__set("validation_time", getTime());
 			break;
 		}
 	}	
