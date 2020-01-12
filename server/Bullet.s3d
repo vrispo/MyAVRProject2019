@@ -20,6 +20,7 @@ function bullet::init(pos, dir, c, i, g, on, seq){
 	player_index = i;
 	position = pos;
 	direction = dir;
+	col = c;
 	gun = g;
 	mesh = cvmNewMesh(VRP_SPHERE);
 	if(g == 1){

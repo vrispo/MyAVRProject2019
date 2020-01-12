@@ -12,6 +12,8 @@ class Bullet{
 	var alive;
 	var seq_number;
 	var last_validation;
+	var texture;
+	var material;
 	init(pos, dir, c, i, g, on, seq);
 	update();
 	draw();
@@ -39,10 +41,15 @@ function bullet::init(pos, dir, c, i, g, on, seq){
 		mesh.scale(0.5);
 	}
 	alive = on;
-			
-	//mesh.modulateMaterials(col);
+	
+	texture = CVmTexture("bullet_metal.jpg");	
+	material = CVmMaterial();
+	material.setTexture(texture);
+	
+	mesh.setMaterial(material);
+	mesh.modulateMaterials(col);
 	obj = CVmObj(mesh);
-	obj.SetPosition(position);
+	obj.setPosition(position);
 }
 
 function bullet::update(){
