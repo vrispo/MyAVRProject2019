@@ -20,7 +20,11 @@
 #define OK 1
 #define ERR -1
 
-#define CAMERA_OFFSET [0.0, 1.2, 0.0]
+//#define CAMERA_OFFSET [0.0, 1.2, 0.0]
+#define CAMERA_OFF_Z -0.4
+#define CAMERA_OFF_Y 1.2
+#define CAMERA_OFF_X -0.4
+//#define CAMERA_PIVOT 0.0, 0.0, 0.4
 
 /* Set global scene parameters */
 SET SCENE_FOV  = 60;
@@ -33,7 +37,7 @@ var broadcast_address;
 var connected = false;
 
 var aplayer = array(MAX_PLAYERS);
-var aplayer_color = {[1,0,0],[0,1,0],[0,0,1],[1,1,0]};
+var aplayer_color = {[1,0,0], [0,1,0], [0,0,1], [1,1,0]};
 var online_player = array(MAX_PLAYERS);
 var is_enemy_updated = array(MAX_PLAYERS);
 
@@ -46,7 +50,6 @@ var my_level;
 var score = array(MAX_PLAYERS);
 var score_ids = array(MAX_PLAYERS);
 /* Camera globals */
-var CamPos = [2.0, 3.0, 20.0]; 	// camera position
 var Window = CVmWebBrowser();
 var fs = false;
 var last_fs;
@@ -77,7 +80,7 @@ var failed_attempts = 0;
 
 function OnInit(params){
 	/* initialize camera */
-//	CameraGetCurrent().SetPosition(CamPos);
+	//CameraGetCurrent().SetPivotPoint(CAMERA_PIVOT);
 
 	/* initialize light */
 	Light0 = CVmLight();
@@ -207,7 +210,6 @@ function OnFrame(){
 	/* manage camera */
 
 	SceneBegin();
-	
 	
 	var current_time = getTime();
 	if(keyPressed("h") && ((current_time - last_fs) > 500)){
@@ -426,9 +428,15 @@ function OnExit(){
 // Camera manager (using mouse)
 function CameraMove(){  
 //  CameraMoveMouse_MBL_LC();
-	CameraGetCurrent().SetPosition(aplayer[my_index].__get("position") + CAMERA_OFFSET);
+	var temp_pos = aplayer[my_index].__get("position");
 	var temp_angle = aplayer[my_index].__get("angle_xz");
-	CameraGetCurrent().SetDirection([sin(temp_angle), 0, cos(temp_angle)]);
+	var sin_a = sin(temp_angle);
+	var cos_a = cos(temp_angle);
+	var cam_z = temp_pos[0] + sin_a * CAMERA_OFF_Z;
+	var cam_y = temp_pos[1] + CAMERA_OFF_Y;
+	var cam_x = temp_pos[2] + cos_a * CAMERA_OFF_X;
+	CameraGetCurrent().SetPosition(cam_z, cam_y, cam_x);
+	CameraGetCurrent().SetDirection([sin_a, 0, cos_a]);
 }
 
 
