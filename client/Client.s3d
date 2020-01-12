@@ -42,7 +42,6 @@ var online_player = array(MAX_PLAYERS);
 var is_enemy_updated = array(MAX_PLAYERS);
 
 var my_ip;
-//var server_ip; definita in player
 
 var level_obj_l;
 var my_level;
@@ -56,7 +55,7 @@ var last_fs;
 
 /* Light globals */
 var Light0;
-var PosL = [16.0, 20, 16.0];	// default light position
+var PosL = [16.0, 20, 16.0];
 var Light1;
 var PosL1 = [0.0, 20, 0.0];	
 var Light2;
@@ -191,12 +190,6 @@ function OnInit(params){
 			Quit();
 		}						
     } while (!recv);
-
-	/* send ack */
-	PDU = array(2);
-	PDU[0] = ACK;
-	PDU[1] = OK;
-	mysend(server_ip, PDU);
 	
 	/* Set onTimer 10 times faster than on frame */
 	SetTimeStep(1);
@@ -211,6 +204,7 @@ function OnFrame(){
 
 	SceneBegin();
 	
+	//If the key h is pressed change to fullscreen mode
 	var current_time = getTime();
 	if(keyPressed("h") && ((current_time - last_fs) > 500)){
 		fs = !fs;		
@@ -218,12 +212,11 @@ function OnFrame(){
 		last_fs = current_time;
 	}
 	
-	// TODO: put your drawing code here
-	aplayer[my_index].update(server_ip);
-	
+	//Call player update and eventually send the new position to the server
+	aplayer[my_index].update(server_ip);	
 	if(connected){
-		/* send my position to the server */
-		var current_updatetime = getTime();//returns time in milliseconds
+		//Periodic sending of my position
+		var current_updatetime = getTime();
 	    if(current_updatetime - old_updatetime > 50){
 	    	old_updatetime = current_updatetime;
 	    	
@@ -238,17 +231,17 @@ function OnFrame(){
 			PDU[7] = aplayer[my_index].__get("railgun_equipped");
 			mysend(server_ip, PDU);
 			
-			/*aspetto l'ack */
+			//Wait for the ack
 			var address1 = "................";
 			var received_data;
-			var recv = false;
+			var recv = false;			
+			var old_time = getTime();
 			
-			var old_time = getTime();//returns time in milliseconds
 			do{		
 				var current_time = getTime();
-		    	if(current_time-old_time > 1000){
-		    		mysend(server_ip, PDU);
-		    		old_time = getTime();
+			    	if(current_time-old_time > 1000){
+			    		mysend(server_ip, PDU);
+			    		old_time = getTime();
 				} 
 				received_data = NetVarReceiveFrom(net_channel, &address1);	
 				if(received_data != null)
@@ -260,13 +253,11 @@ function OnFrame(){
 		    }while(!recv);
 	    }		
 	}
-
-	
 	
 	my_level.draw();
 	
+	//If there is some enemy active I draw it
 	if(connected){
-		/* if there is some enemy active I draw it */
 		for(var i=0 ; i < MAX_PLAYERS ; i++){
 			if((online_player[i]) && (i != my_index)){
 				if (!is_enemy_updated[i])
@@ -278,33 +269,35 @@ function OnFrame(){
 		}		
 	}
 	
+	//Draw myself
 	CameraMove();
 	aplayer[my_index].fp_draw();
 	
-	
 	ConsoleColor([255, 255, 255, 1]);
-	ConsoleText(0.495, 0.45, "+");		
-	
-	
+	ConsoleText(0.495, 0.45, "+");			
+
+	//Writing game info on the scene	
 	if(!connected){
 		ConsoleColor([255, 0, 0, 1]);
 		ConsoleText(0.5, 0.5, "You are not online!");		
 	}
 	else{
 		ConsoleColor([0, 255, 0, 1]);
-		ConsoleText(0.02, 0.96, "You (" + my_id + ") are online!");
+		//ConsoleText(0.02, 0.96, "You (" + my_id + ") are online!");
+		ConsoleText(0.02, 0.96, my_id);
 		var y = 0.96;
 		for(var i = 0 ; i < MAX_PLAYERS ; i++){
 			if( i != my_index)
-				ConsoleText(0.85, y, "Player " + score_ids[i] + ": " + str(score[i]));
+				ConsoleText(0.85, y, " " + score_ids[i] + ": " + str(score[i]));
 			else
-				ConsoleText(0.85, y, "Player " + my_id + ": " + str(score[i]));
+				ConsoleText(0.85, y, " You		: " + str(score[i]));
 			y-=0.04;
 		}
-		ConsoleText(0.02, 0.1, "Vita: " + str(aplayer[my_index].__get("life")));
+		ConsoleText(0.02, 0.1, "Life: " + str(aplayer[my_index].__get("life")));
 		ConsoleText(0.02, 0.06, "Railgun bullets: " + str(aplayer[my_index].__get("railgun_bullets")));
 		ConsoleText(0.02, 0.02, "Rocket bullets: " + str(aplayer[my_index].__get("rocket_bullets")));			
-	}	
+	}
+		
 	SceneEnd();
 }
 
@@ -317,19 +310,11 @@ function DownloadReady(RequestID){
 
 
 function OnTimer(){
-	// TODO:
-	
 	var address1 = "................";
 	var received_data = NetVarReceiveFrom(net_channel,&address1);
 	
-	if((received_data != NULL) && connected){
-		if(received_data[0] == CONNECT_RESP_PDU){
-			/* the ack must been lost I send ack again*/
-			var PDU = array(2);
-			PDU[0] = ACK;
-			PDU[1] = OK;
-			mysend(server_ip, PDU);
-		}
+	if((received_data != NULL) && connected){		
+		//Received a enemy position PDU
 		if(received_data[0] == ENEMY_POSITION_PDU){
 			var enemy_index = received_data[1];
 			var enemy_position = received_data[2];
@@ -342,45 +327,40 @@ function OnTimer(){
 			
 			online_player[enemy_index] = true;
 			aplayer[enemy_index].enemyUpdate(enemy_position, enemy_move, enemy_frame, enemy_angle, enemy_gun);
-			
-			/* send the ack
-			var PDU = array(2);
-			PDU[0] = ACK;
-			PDU[1] = OK;
-			mysend(server_ip, PDU);
-			outputln("ACCO il server");*/
 		}
+		
+		//Received an enemy disconnection PDU
 		if(received_data[0] == ENEMY_DISCONNECTION_PDU){
 			var enemy_index = received_data[1];
 			online_player[enemy_index] = false;
 			outputln("enemy " + str(enemy_index) + " disconnected");
-			
-			/* send the ack
-			var PDU = array(2);
-			PDU[0] = ACK;
-			PDU[1] = OK;
-			mysend(server_ip, PDU);*/
 		}
+		
+		//Received a ping from the server
 		if(received_data[0] == PING){
 			var PDU = array(2);
 			PDU[0] = PING;
 			PDU[1] = my_index;
 			mysend(server_ip, PDU);			
 		}
+		
+		//Received a position bullet PDU
 		if(received_data[0] == POSITION_BULLET_PDU){
 			aplayer[my_index].insertBullet(received_data[1], received_data[2], received_data[3], received_data[4], received_data[5], received_data[6]);			
 		}
+		
+		//Received a delete bullet pdu
 		if(received_data[0] == DELETE_BULLET_PDU){		
 			aplayer[my_index].deleteBullet(received_data[1], received_data[2]);
 		}
+		
+		//Received a score PDU
 		if(received_data[0] == SCORE_PDU){
 			score = received_data[1];
 			score_ids = received_data[2];
 		}
-	}
-	
+	}	
 }
-
 
 function OnEvent(eventID, wparam, lparam){
 	// TODO: put your events handling code here
@@ -390,40 +370,38 @@ function OnError(){
 	// TODO: put your errors handling code here
 }
 
-
 function OnExit(){
-	// TODO: put your cleanup code here
-	/* Send request in broadcast to find server ip */
-	var recv = false;
-	
-	outputln("disconnession...");
-	var PDU = array(4);
-	PDU[0] = DISCONNECT_REQ_PDU;
-	PDU[1] = my_ip;
-	PDU[2] = my_id;
-	PDU[3] = my_index;
-	mysend(server_ip, PDU);
-	
-	/*aspetto l'ack */
-	var address1 = "................";
-	var received_data;
-	
-	var old_time = getTime();//returns time in milliseconds
-	do{		
-		var current_time = getTime();
-    	if(current_time-old_time>1000){
-    		mysend(server_ip, PDU);
-    		old_time = getTime();
-		} 
-		received_data = NetVarReceiveFrom(net_channel, &address1);	
-		if(received_data != null)
-			if(received_data[0] == ACK)
-				recv = true;;				
-    }while(!recv);
-    outputln("disconnected!");
+	if(connected){
+		//Send disconnection PDU to the server
+		outputln("Disconnession... \n");
+		var PDU = array(4);
+		PDU[0] = DISCONNECT_REQ_PDU;
+		PDU[1] = my_ip;
+		PDU[2] = my_id;
+		PDU[3] = my_index;
+		mysend(server_ip, PDU);
+		
+		//Wait for the ack
+		var address1 = "................";
+		var received_data;
+		var recv = false;
+		var old_time = getTime();//returns time in milliseconds
+		
+		do{		
+			var current_time = getTime();
+		    	if(current_time-old_time>1000){
+		    		mysend(server_ip, PDU);
+		    		old_time = getTime();
+				} 
+				received_data = NetVarReceiveFrom(net_channel, &address1);	
+				if(received_data != null)
+					if(received_data[0] == ACK)
+						recv = true;			
+	    }while(!recv);
+	    
+	    outputln("Disconnected! \n");		
+	}
 }
-
-
 
 // Camera manager (using mouse)
 function CameraMove(){  

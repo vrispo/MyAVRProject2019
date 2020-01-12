@@ -41,7 +41,7 @@ var net_channel;
 
 var active_connection;
 var online_player = array(MAX_PLAYERS);
-var init_pos = {[2, 0, 2], [2, 0, 30], [30, 0, 30], [30, 0, 2]};
+var init_pos = {[2, 0, 2], [2, 0, 30], [30, 0, 30], [30, 0, 2]}; 
 
 var score = array(MAX_PLAYERS);
 var old_time_score_sent;
@@ -63,18 +63,20 @@ function OnInit(params){
 	// TODO: put your initialization code here
 	ConsoleColor([0,255,0,1]);
 	SetLocalDir("");	
+	
+	//Download the dll and retrieve my IPV4 address
 	GLOBAL var TestDLL = CVmExternDLL( "../UtilityDll/Release/UtilityDll.dll" );
 	TestDLL.__AddFunction( C_PCHAR , "get_IPaddress");
 	my_ip = TestDLL.get_IPaddress();
 	
-	Outputln("\n");
-	//Outputln(my_ip);
-	
+	//Take the map and initialize the level (used to check wall collision of the bullets)
 	level_l = Level();
 	level_l.init("level1.txt");
 	
-	net_channel= NetCreateChannel(50023, "0.0.0.0", VR_NO_BLOCKING);
+	net_channel= NetCreateChannel(SERVER_PORT, "0.0.0.0", VR_NO_BLOCKING);
 	active_connection = 0;
+	
+	//Initialize the players
 	for(var i = 0 ; i < MAX_PLAYERS ; i++){
 		online_player[i] = Player();
 		online_player[i].init(i, init_pos[i]);
@@ -83,9 +85,10 @@ function OnInit(params){
 	}
 	
 	old_time_online_check = getTime();
-	old_time_score_sent = getTime();
-	
+	old_time_score_sent = getTime();	
 	old_time_bullet_sent = getTime();
+	
+	//Initialize the bullets
 	bullets = array(MAX_BULLETS);
 	for(var i = 0; i < MAX_BULLETS; i++){
 		bullets[i] = bullet();
@@ -98,27 +101,30 @@ function OnInit(params){
 function OnFrame(){
 	
 	SceneBegin();
-	//dead reckoning
+	
+	//Periodic check of the still alive players
 	var current_time = getTime();
 	if((current_time - old_time_online_check) > 5000){
-		//controllo se c'è da mandare un messaggio di ping
+		//Check if I have to send some ping message
 		old_time_online_check = current_time;
 		for(var i = 0 ; i < MAX_PLAYERS ; i++){
-			if(online_player[i].isConnected() && (alive[i] <= 0)){
+			//If the player in the fraction of time have sended some message to the server alive[index] is greater than 0
+			if(online_player[i].isConnected() && (alive[i] <= 0)){ 
 				var PDU = array(2);
 				if(alive[i] == 0){
-					//send ping to check if is dead
+					//Send ping to check if is dead
 					alive[i] = -1;
 					PDU[0] = PING;
 					PDU[1] = i;
 					mysend(online_player[i].__get("ip"), PDU);
 				} else {
-					//is dead
+					//Is ufficially dead so I disconnected him
 					online_player[i].Disconnection();
 					active_connection--;
 					outputln(str(i) + ": dead");
 					alive[i] = 0;
-					// send to the other online player that the player x is disconnected from the game 
+					
+					//Send a ENEMY_DISCONNECTION PDU to online players to notify
 					PDU[0] = ENEMY_DISCONNECTION_PDU;
 					PDU[1] = i;
 					
@@ -127,22 +133,23 @@ function OnFrame(){
 							mysend(online_player[j].__get("ip"), PDU);											
 				}
 			} else {
+				//Reset the alive vector
 				alive[i] = 0;
 			}
 		}
 	}
-	
+
+	//Call the bullet update and check the wall collision
 	level_l.draw();
 	
-	//chiamo l'update dei proiettili a giro e controllo collisione
 	for (var i = 0; i < MAX_BULLETS; i++){
 		if(bullets[i].isAlive()){
 			bullets[i].update();
 			var bull_pos = bullets[i].__get("position");
 			var t_lvl = level_l.__get("level_obj");
 			foreach (var t in t_lvl)
+				//Check if is colliding or is out and notify it to online players
 				if (bullets[i].obj.isCollidingBBox(t) || bull_pos[0] >= num_rows || bull_pos[0] < 0 || bull_pos[2] >= num_columns || bull_pos[2] < 0 ){
-//					outputln("collisione ambientale");
 					var PDU = array(3);
 					PDU[0] = DELETE_BULLET_PDU;
 					PDU[1] = bullets[i].__get("player_index");
@@ -159,7 +166,7 @@ function OnFrame(){
 		}
 	}
 	
-	//guardo se devo fare il resend periodico dei proiettili
+	//Periodic resending of the active bullets
 	current_time = getTime();
 	if((current_time - old_time_bullet_sent) > 500){
 		for(var i = 0; i < MAX_BULLETS; i++){
@@ -181,7 +188,7 @@ function OnFrame(){
 		}		
 	}
 	
-	//mando i punteggi
+	//Periodic sending of the score
 	current_time = getTime();
 	if((current_time - old_time_score_sent) > 500){
 		var ids = array(MAX_PLAYERS);
@@ -198,11 +205,11 @@ function OnFrame(){
 		PDU[1] = score;
 		PDU[2] = ids;
 		
-
 		for(var j = 0 ; j < MAX_PLAYERS ; j++)
 			if(online_player[j].isConnected())
 				mysend(online_player[j].__get("ip"), PDU);			
 	}
+	
 	// TODO: put your drawing code here
 	ConsoleText(CONSOLE_X_0, CONSOLE_Y_0, "Server IP address: " + my_ip);
 	for(var i=0 ; i < MAX_PLAYERS ; i++){
@@ -216,18 +223,33 @@ function DownloadReady(RequestID){
 }
 
 function OnTimer(){
-	// TODO:
 	var address1 = "................";
 	var received_data = NetVarReceiveFrom(net_channel,&address1);
 	
 	if(received_data != NULL){
+		//Received a connection request PDU
 		if(received_data[0] == CONNECT_REQ_PDU){			
 			var id_req = received_data[1];
 			var ip_req = received_data[2];
 			
 			var PDU = array(5);
-			if(active_connection < MAX_PLAYERS){
-				//find the first available place and give an OK response
+			
+			//Check if I have already received a request from him
+			var already_exist = false;
+			for(var i = 0; i < MAX_PLAYERS ; i++){
+				if((online_player[i].isConnected()) && (online_player[i].__Get("id") == id_req) && (online_player[i].__Get("ip") == ip_req)){
+					already_exist = true;
+					PDU[0] = CONNECT_RESP_PDU;
+					PDU[1] = OK;
+					PDU[2] = my_ip; //Server ip
+					PDU[3] = i; //Index
+					PDU[4] = online_player[i].getStartPosition(); //Initial spawn position
+					mysend(ip_req, PDU);					
+				}
+			}
+			
+			if(!already_exist && (active_connection < MAX_PLAYERS)){
+				//Find the first available place and send an OK response with the info
 				var i = 0;
 				while(online_player[i].isConnected())
 					i++;
@@ -237,36 +259,24 @@ function OnTimer(){
 				outputln(online_player[i].toString());
 				
 				PDU[0] = CONNECT_RESP_PDU;
-				PDU[1] = OK; //response
-				PDU[2] = my_ip;
-				PDU[3] = i; //index
-				PDU[4] = online_player[i].getStartPosition(); //pos
+				PDU[1] = OK;
+				PDU[2] = my_ip; //Server ip
+				PDU[3] = i; //Index
+				PDU[4] = online_player[i].getStartPosition(); //Initial spawn position
 				mysend(ip_req, PDU);
 			}
 			else{
-				//send no connection available response
+				//Send no game connection available response
 				PDU[0] = CONNECT_RESP_PDU;
 				PDU[1] = ERR;
 				PDU[2] = my_ip;
-				PDU[3] = null; //index
-				PDU[4] = null; //pos
+				PDU[3] = null;
+				PDU[4] = null;
 				mysend(ip_req, PDU); 
-			}
-			var recv = false;
-			var old_time = getTime();//returns time in milliseconds
-			do{		
-				var current_time = getTime();
-		    	if(current_time-old_time>1000){
-		    		mysend(ip_req, PDU);
-		    		old_time = getTime();
-				} 
-				received_data = NetVarReceiveFrom(net_channel, &address1);	
-				if(received_data != null)
-					if(received_data[0] == ACK)
-						recv = true;				
-		    }while(!recv);							
+			}							
 		}
-		/* disconnection of the client */
+		
+		//Received a disconnection PDU
 		if(received_data[0] == DISCONNECT_REQ_PDU){
 			var ip_req = received_data[1];
 			var id_req = received_data[2];
@@ -280,36 +290,24 @@ function OnTimer(){
 				outputln("disconnected");			
 			}
 			
-			/* send ack */
+			//Send the ack
 			var PDU = array(2);
 			PDU[0] = ACK;
 			PDU[1] = OK;
 			mysend(ip_req, PDU); 	
 			
-			/* send to the other online player that the player x is disconnected from the game */
+			//Notify the disconnection to online players
 			PDU[0] = ENEMY_DISCONNECTION_PDU;
 			PDU[1] = index_req;
 			
 			for(var i=0 ; i < MAX_PLAYERS ; i++){
 				if((i != index_req) && online_player[i].isConnected()){
-					mysend(online_player[i].__get("ip"), PDU);
-					/*aspetto l'ack 
-					var recv = false;
-					var old_time = getTime();//returns time in milliseconds
-					do{		
-						var current_time = getTime();
-				    	if(current_time-old_time>1000){
-				    		mysend(online_player[i].__get("ip"), PDU);
-				    		old_time = getTime();
-						} 
-						received_data = NetVarReceiveFrom(net_channel, &address1);	
-						if(received_data != null)
-							if(received_data[0] == ACK)
-								recv = true;				
-				    }while(!recv);	*/				
+					mysend(online_player[i].__get("ip"), PDU);			
 				}
 			}			
 		}
+		
+		//Received a player position PDU
 		if(received_data[0] == POSITION_UPDATE_PDU){
 			var ip_req = received_data[1];
 			var index = received_data[2];
@@ -320,22 +318,21 @@ function OnTimer(){
 			var gun = received_data[7];
 			
 			if(online_player[index].__get("ip") != ip_req){
-				/* send ack */
+				//Send the ack
 				var PDU = array(2);
 				PDU[0] = ACK;
 				PDU[1] = ERR;
 				mysend(ip_req, PDU);			
 			}
 			else{
-				//outputln("received position from " + online_player[index].__get("id"));
 				alive[index] = 1;
-				/* send ack */
+				//Send the ack
 				var PDU = array(2);
 				PDU[0] = ACK;
 				PDU[1] = OK;
 				mysend(ip_req, PDU);
 				
-				/*send the position to the other players */
+				//Notify the position update to other online players
 				PDU = array(7);
 				PDU[0] = ENEMY_POSITION_PDU;
 				PDU[1] = index;
@@ -345,17 +342,18 @@ function OnTimer(){
 				PDU[5] = angle;
 				PDU[6] = gun;
 				
-				for(var i=0 ; i < MAX_PLAYERS ; i++){
-					if((i != index) && online_player[i].isConnected()){
+				for(var i=0 ; i < MAX_PLAYERS ; i++)
+					if((i != index) && online_player[i].isConnected())
 						mysend(online_player[i].__get("ip"), PDU);
-//						outputln("sended position to " + online_player[i].__get("id"));		
-					}
-				}
 			}						
 		}
+		
+		//Received a ping message
 		if(received_data[0] == PING){
 			alive[received_data[1]] = 1;
 		}
+		
+		//Received a position bullet PDU
 		if(received_data[0] == POSITION_BULLET_PDU){
 			var pos = received_data[1];
 			var dir = received_data[2];
@@ -364,15 +362,13 @@ function OnTimer(){
 			var bullet = received_data[5];
 			var seq_number = received_data[6];
 			
-			/* send ack */
+			//Send the ack
 			var PDU = array(2);
 			PDU[0] = ACK;
 			PDU[1] = OK;
 			mysend(online_player[ind].__get("ip"), PDU);
 			
-//			outputln("received bullet from: "+ str(ind) + " seq_num: " + str(seq_number)+ " pos: " + str(pos[0]) + " " + str(pos[1]) + " " + str(pos[2]));
-			
-			//il server si salva il proiettile
+			//Save the new bullet in a free position of the array
 			var i = 0;
 			for(i = 0 ; i < MAX_BULLETS ;  i++){
 				if(!bullets[i].isAlive())
@@ -381,55 +377,59 @@ function OnTimer(){
 			if(i != MAX_BULLETS){
 				bullets[i].init(pos, dir, col, ind, bullet, true, seq_number);
 			}
-			//mando il proiettile agli altri
-			for(var i=0 ; i < MAX_PLAYERS ; i++){
-				if((i != ind) && online_player[i].isConnected()){
+			
+			//Notify the new bullet info to online players
+			for(var i=0 ; i < MAX_PLAYERS ; i++)
+				if((i != ind) && online_player[i].isConnected())
 					mysend(online_player[i].__get("ip"), received_data);
-				}
-			}
 		}
+		
+		//Received a delete bullet PDU
 		if(received_data[0] == DELETE_BULLET_PDU){
 			var p_index = received_data[1];
 			var seq_n = received_data[2];
 			
-			/* send ack */
+			//Send the ack
 			var PDU = array(2);
 			PDU[0] = ACK;
 			PDU[1] = OK;
 			mysend(address1, PDU);
-						
+			
+			//Set the corresponding bullet as not alive and notify to other online players			
 			for(var i = 0 ; i < MAX_BULLETS ; i++){
 				if(bullets[i].isAlive() && (bullets[i].__get("player_index") == p_index) && (bullets[i].__get("seq_number") == seq_n)){
 					bullets[i].__set("alive", false);
-					for(var j=0 ; j < MAX_PLAYERS ; j++){
-						if(online_player[j].isConnected()){
-							mysend(online_player[j].__get("ip"), received_data);
-						}
-					}					
+					for(var j=0 ; j < MAX_PLAYERS ; j++)
+						if(online_player[j].isConnected())
+							mysend(online_player[j].__get("ip"), received_data);					
 				}
 			}
 		}
+		
+		//Received a kill PDU
 		if (received_data[0] == KILL_PDU){
 			received_data[0] = DELETE_BULLET_PDU;
 			var p_index = received_data[1];
 			var seq_n = received_data[2];
+			
+			//Update the score
 			score[p_index]++;			
 			
+			//Set the corresponding bullet as not alive and notify to other online players to delete the bullet
 			for(var i = 0 ; i < MAX_BULLETS ; i++){
 				if(bullets[i].isAlive() && (bullets[i].__get("player_index") == p_index) && (bullets[i].__get("seq_number") == seq_n)){
 					bullets[i].__set("alive", false);
-					for(var j=0 ; j < MAX_PLAYERS ; j++){
-						if(online_player[j].isConnected()){
-							mysend(online_player[j].__get("ip"), received_data);
-						}
-					}					
+					for(var j=0 ; j < MAX_PLAYERS ; j++)
+						if(online_player[j].isConnected())
+							mysend(online_player[j].__get("ip"), received_data);				
 				}
 			}
-					
+			
+			//Calculate spawn position for the killed player and send to him		
 			var pos =[(rand(num_rows-3)+1.5), 0, (rand(num_columns-3)+1.5)];
 			if(val(f[pos[0]][pos[2]]) != 0)
 				pos[1] = val(f[pos[0]][pos[2]]) + 0.001;
-			/* send new position */
+			
 			var PDU = array(2);
 			PDU[0] = KILL_ACK_PDU;
 			PDU[1] = pos;
