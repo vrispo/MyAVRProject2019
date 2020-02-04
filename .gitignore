@@ -1,7 +1,4 @@
-
-client/ip.txt
-
-client/userid.txt
+client/*.txt
 
 *.dbg
 
@@ -10,5 +7,5 @@ client/userid.txt
 *.asm
 
 client/Client.s3d
-*.txt
 server/ip.txt
+GetId/Debug/*.txt
