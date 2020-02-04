@@ -62,7 +62,6 @@ class Player{
 	var strafe;
 	var left_strafe;
 	var right_strafe;
-	var gaze;
 	var direction;
 	var jump_target;
 	var last_frame;
@@ -255,9 +254,6 @@ function Player::wasd(){
 			step_fx.play();
 		}
 	}
-	
-	if (!getYCollision())
-		updateY();
 }
 
 function Player::jump(){
@@ -315,7 +311,7 @@ function Player::setRotation(angle_xz){
 }
 
 function Player::update(){
-	fp_obj.hide();
+	//fp_obj.hide();
 	
 	move = [0.0, 0.0, 0.0];
 	
@@ -339,8 +335,7 @@ function Player::update(){
 	else if (keyPressed("q"))
 		angle_xz += 0.05;
 	
-	gaze = [sin(angle_xz), 0, cos(angle_xz)];	
-	direction = [gaze[0], 0, gaze[2]];
+	direction = [sin(angle_xz), 0, cos(angle_xz)];	
 	
 	var angle_xz_r = angle_xz + (PI / 2);
 	var angle_xz_l = angle_xz - (PI / 2);
@@ -348,11 +343,18 @@ function Player::update(){
 	left_strafe = [sin(angle_xz_l), 0.0, cos(angle_xz_l)];
 	
 	wasd();
+	
+	// Controllo stato salto
+		
 	if (keyPressed(VK_SPACE) && !is_jumping)
-		jump();
-	if (is_jumping)
+		jump();	
+	if (!getYCollision())
+		updateY();
+	else if (is_jumping)
 		updateY();
 		
+		
+	// Cambio arma	
 	if (keyPressed("1"))
 		swapWeapon(1);
 	if (keyPressed("2"))
@@ -371,7 +373,7 @@ function Player::update(){
 		setPosition(position);
 	}
 	
-	fp_obj.unhide();
+	//fp_obj.unhide();
 	
 	//chiamo l'update dei proiettili a giro
 	for (var i = 0; i < MAX_BULLETS; i++){
