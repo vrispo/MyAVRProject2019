@@ -132,7 +132,10 @@ function OnInit(params){
 	Outputln("IP:" + my_ip);
 	var ip_elem[4];
 	ip_elem = split(my_ip + "", ".");
-	broadcast_address = ip_elem[0] + "." + ip_elem[1] + "." + ip_elem[2] + ".255";
+	if(int(val(ip_elem[0])) > 191) 
+		broadcast_address = ip_elem[0] + "." + ip_elem[1] + "." + ip_elem[2] + ".255";
+	else
+		broadcast_address = ip_elem[0] + "." + ip_elem[1] + ".255.255";
 	outputln("broadcast = " + broadcast_address);
 	
 	SetCurrentDir(CurDir);
