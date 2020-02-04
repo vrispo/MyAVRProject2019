@@ -63,7 +63,6 @@ class Player{
 	var left_strafe;
 	var right_strafe;
 	var direction;
-	var half_direction;
 	var jump_target;
 	var last_frame;
 	var current_frame;
@@ -350,7 +349,13 @@ function Player::update(){
 	var angle_xz_r = angle_xz + (PI / 2);
 	var angle_xz_l = angle_xz - (PI / 2);
 	right_strafe = [sin(angle_xz_r), 0.0, cos(angle_xz_r)];
-	left_strafe = [sin(angle_xz_l), 0.0, cos(angle_xz_l)];		
+	left_strafe = [sin(angle_xz_l), 0.0, cos(angle_xz_l)];
+	
+	
+	var half_direction = direction;
+	var half_direction_l = left_strafe;
+	var half_direction_r = right_strafe;
+			
 	setRotation(angle_xz);
 	
 	wasd();
@@ -364,15 +369,18 @@ function Player::update(){
 		setPosition(position);
 	} else if (isColliding() && !is_jumping){
 		// ANNULLO COMPONENTE X
-		half_direction = direction;
 		position = old_position;
 		direction = [half_direction[0], half_direction[1], 0];
+		left_strafe = [half_direction_l[0], half_direction_l[1], 0];
+		right_strafe = [half_direction_r[0], half_direction_r[1], 0];
 		wasd();
 		setPosition(position);		
 		if (isColliding()){
 			position = old_position;
 			// ANNULLO COMPONENTE Z
 			direction = [0, half_direction[1], half_direction[2]];
+			left_strafe = [0, half_direction_l[1], half_direction_l[2]];
+			right_strafe = [0, half_direction_r[1], half_direction_r[2]];
 			wasd();
 			setPosition(position);
 			if (isColliding()){
@@ -391,9 +399,7 @@ function Player::update(){
 	} else if (is_jumping){
 		updateY();	
 	}
-	
-	trace(position, is_jumping);
-		
+
 	// Cambio arma	
 	if (keyPressed("1"))
 		swapWeapon(1);
