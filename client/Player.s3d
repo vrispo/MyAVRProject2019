@@ -63,6 +63,7 @@ class Player{
 	var left_strafe;
 	var right_strafe;
 	var direction;
+	var half_direction;
 	var jump_target;
 	var last_frame;
 	var current_frame;
@@ -213,6 +214,7 @@ function Player::fp_draw_only(){
 }
 
 function Player::isColliding(){
+	collision_obj.draw();
 	foreach (var t in level_obj_array)
 		if (collision_obj.isCollidingBBox(t))
 			return true;			
@@ -271,7 +273,14 @@ function Player::updateY(){
 		is_ascending = false;
 		if (position.y > 0.0){
 			move = -[0.0, JUMP_STEP, 0.0];
+			old_position = position;
 			position += move;
+			setPosition(position);
+			if (isColliding()){
+				position.y = floor(old_position.y) + 0.001;
+				setPosition(position);
+				is_jumping = false;
+			}
 		} else {
 			position.y = 0.0;
 			jump_target = 0.0;
@@ -287,7 +296,7 @@ function Player::setPosition(pos){
 }
 
 function Player::getYCollision(){
-	if (position.y == 0.0)
+	if (position.y == 0.0)	
 		return true;
 	
 	var check = false;
@@ -300,7 +309,7 @@ function Player::getYCollision(){
 		
 	collision_obj.setPosition(position);
 	collision_obj.draw();
-	
+			
 	return check;
 }
 
@@ -311,12 +320,13 @@ function Player::setRotation(angle_xz){
 }
 
 function Player::update(){
-	//fp_obj.hide();
+	fp_obj.hide();
 	
 	move = [0.0, 0.0, 0.0];
 	
-	if (!isColliding())
+	if(!isColliding()){
 		old_position = position;
+	}
 	
 	if (keyPressed(VK_SHIFT)){
 		run = 1.5;
@@ -340,40 +350,57 @@ function Player::update(){
 	var angle_xz_r = angle_xz + (PI / 2);
 	var angle_xz_l = angle_xz - (PI / 2);
 	right_strafe = [sin(angle_xz_r), 0.0, cos(angle_xz_r)];
-	left_strafe = [sin(angle_xz_l), 0.0, cos(angle_xz_l)];
+	left_strafe = [sin(angle_xz_l), 0.0, cos(angle_xz_l)];		
+	setRotation(angle_xz);
 	
 	wasd();
+	setPosition(position);
 	
+	if (isColliding() && is_jumping){
+		is_jumping = false;
+		old_position.y = floor(old_position.y) + 0.001;
+		jump_target = old_position.y;
+		position = old_position;
+		setPosition(position);
+	} else if (isColliding() && !is_jumping){
+		// ANNULLO COMPONENTE X
+		half_direction = direction;
+		position = old_position;
+		direction = [half_direction[0], half_direction[1], 0];
+		wasd();
+		setPosition(position);		
+		if (isColliding()){
+			position = old_position;
+			// ANNULLO COMPONENTE Z
+			direction = [0, half_direction[1], half_direction[2]];
+			wasd();
+			setPosition(position);
+			if (isColliding()){
+				position = old_position;
+				setPosition(position);
+			}
+		}
+	}
+		
 	// Controllo stato salto
 		
 	if (keyPressed(VK_SPACE) && !is_jumping)
 		jump();	
-	if (!getYCollision())
+	if (!getYCollision()){
 		updateY();
-	else if (is_jumping)
-		updateY();
-		
+	} else if (is_jumping){
+		updateY();	
+	}
+	
+	trace(position, is_jumping);
 		
 	// Cambio arma	
 	if (keyPressed("1"))
 		swapWeapon(1);
 	if (keyPressed("2"))
 		swapWeapon(2);
-		
-	setRotation(angle_xz);
-	setPosition(position);
 	
-	if (isColliding()){
-		if (is_jumping){
-			is_jumping = false;
-			jump_target = 0.0;
-			old_position[1] = floor(old_position[1]) + 0.001;
-		}
-		position = old_position;
-		setPosition(position);
-	}
-	
-	//fp_obj.unhide();
+	fp_obj.unhide();
 	
 	//chiamo l'update dei proiettili a giro
 	for (var i = 0; i < MAX_BULLETS; i++){
