@@ -135,7 +135,7 @@ function OnInit(params){
 	if(int(val(ip_elem[0])) > 191) 
 		broadcast_address = ip_elem[0] + "." + ip_elem[1] + "." + ip_elem[2] + ".255";
 	else
-		broadcast_address = ip_elem[0] + "." + ip_elem[1] + ".255.255";
+		broadcast_address = ip_elem[0] + ".255.255.255";
 	outputln("broadcast = " + broadcast_address);
 	
 	SetCurrentDir(CurDir);
