@@ -426,7 +426,7 @@ function OnTimer(){
 			}
 			
 			//Calculate spawn position for the killed player and send to him		
-			var pos =[(rand(num_rows-3)+1.5), 0, (rand(num_columns-3)+1.5)];
+			var pos =[(rand(num_rows-4)+1.5), 0, (rand(num_columns-4)+1.5)];
 			if(val(f[pos[0]][pos[2]]) != 0)
 				pos[1] = val(f[pos[0]][pos[2]]) + 0.001;
 			
