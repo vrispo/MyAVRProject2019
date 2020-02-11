@@ -202,6 +202,99 @@ function OnInit(params){
 
 var old_updatetime = 0;
 
+function info(){	
+	ConsoleFont("Calibri",15);	
+	//Writing game info on the scene	
+	if(!connected){
+		ConsoleColor([1, 0, 0, 1]);
+		ConsoleText(0.5, 0.5, "You are not online!");		
+	}
+	else{
+		var gray_title = [0.3,0.3,0.3,1];
+		var background_rect = [1,1,1,0.5];
+		
+		ConsoleColor(background_rect);
+		ConsoleFilledRect(0,0.12,0.15,0.12);
+		ConsoleFont("Calibri",35);	
+		ConsoleColor([1, 0, 0, 1]);
+		var perc_life = (aplayer[my_index].__get("life") / MAX_LIFE) * 100;
+		ConsoleText(0.02, 0.05, str(perc_life) + "%");
+		ConsoleFont("Calibri",20);	
+		ConsoleColor(gray_title);
+		ConsoleText(0.03, 0.01, "Health");
+		ConsoleFont("Calibri",15);	
+		
+		ConsoleColor(background_rect);
+		ConsoleFilledRect(0.152,0.12,0.25,0.12);
+		if(aplayer[my_index].__get("railgun_equipped")){
+			ConsoleFont("Calibri",35);	
+			ConsoleColor([1, 0, 0, 1]);
+			ConsoleText(0.2, 0.05,str(aplayer[my_index].__get("railgun_bullets")) + "/" +str(MAX_RAILGUN_BULLETS));
+			ConsoleFont("Calibri",20);	
+			ConsoleColor(gray_title);
+			ConsoleText(0.18, 0.01, "Railgun bullets");
+		}
+			
+		else{
+			ConsoleFont("Calibri",35);	
+			ConsoleColor([1, 0, 0, 1]);
+			ConsoleText(0.2, 0.05,str(aplayer[my_index].__get("rocket_bullets")) + "/" +str(MAX_ROCKET_BULLETS));
+			ConsoleFont("Calibri",20);	
+			ConsoleColor(gray_title);
+			ConsoleText(0.18, 0.01, "Rocket bullets");	
+		}	
+		
+		ConsoleColor(background_rect);
+		ConsoleFilledRect(0.403,0.12,0.1,0.12);
+		ConsoleColor([0.5,0.5,0.5,1]);
+		ConsoleFilledRect(0.42,0.08,0.03,0.04);	
+		ConsoleFilledRect(0.46,0.08,0.03,0.04);				
+		ConsoleColor([0, 0, 1, 1]);
+		ConsoleFont("Calibri",10);	
+		ConsoleText(0.415, 0.09,"Recharge : R");
+		ConsoleFont("Calibri",15);	
+		ConsoleText(0.43, 0.05,"1");
+		ConsoleText(0.47, 0.05,"2");
+		ConsoleFont("Calibri",20);	
+		ConsoleColor(gray_title);
+		ConsoleText(0.42, 0.01, "Arms");	
+		
+		ConsoleColor(background_rect);
+		ConsoleFilledRect(0.505,0.12,0.294,0.12);
+		ConsoleColor([0.5,0.5,0.5,1]);
+		ConsoleFilledRect(0.506,0.119,0.145,0.077);
+		ConsoleFilledRect(0.653,0.119,0.143,0.077);
+		ConsoleColor([1,0,0,1]);
+		
+		ConsoleColor([0, 1, 0, 1]);
+		ConsoleText(0.02, 0.96, my_id);
+		
+		ConsoleColor(gray_title);
+		var y = 0.095;
+		for(var i = 0 ; i < MAX_PLAYERS ; i++){
+			if( i != my_index){
+				ConsoleColor([0, 0, 1, 1]);
+				ConsoleFont("Calibri",12);				
+				ConsoleText(0.508, y, " " + score_ids[i] + ": " + str(score[i]));
+				y-=0.025;
+			}
+			else{
+				ConsoleColor([0, 1, 0, 1]);
+				ConsoleFont("Calibri",30);	
+				ConsoleText(0.72, 0.072, str(score[i]));
+				ConsoleFont("Calibri",15);	
+				ConsoleText(0.675, 0.045, my_id);		
+			}
+		}
+		ConsoleColor(gray_title);
+		ConsoleFont("Calibri",20);	
+		ConsoleText(0.61, 0.01, "Score");
+		
+		ConsoleColor(background_rect);
+		ConsoleFilledRect(0.8,0.12,0.2,0.12);
+	}
+}
+
 function OnFrame(){
 	/* manage camera */
 
@@ -277,106 +370,9 @@ function OnFrame(){
 	aplayer[my_index].fp_draw();
 	
 	ConsoleColor([1, 1, 1, 1]);
-	ConsoleText(0.495, 0.45, "+");	
-	ConsoleFont("Calibri",15);		
-
-	//Writing game info on the scene	
-	if(!connected){
-		ConsoleColor([1, 0, 0, 1]);
-		ConsoleText(0.5, 0.5, "You are not online!");		
-	}
-	else{
-		var gray_title = [0.3,0.3,0.3,1];
-		var background_rect = [1,1,1,0.5];
-		
-		ConsoleColor(background_rect);
-		ConsoleFilledRect(0,0.12,0.15,0.12);
-		ConsoleFont("Calibri",35);	
-		ConsoleColor([1, 0, 0, 1]);
-		var perc_life = (aplayer[my_index].__get("life") / MAX_LIFE) * 100;
-		ConsoleText(0.02, 0.05, str(perc_life) + "%");
-		ConsoleFont("Calibri",20);	
-		ConsoleColor(gray_title);
-		ConsoleText(0.03, 0.01, "Health");
-		ConsoleFont("Calibri",15);	
-		
-		ConsoleColor(background_rect);
-		ConsoleFilledRect(0.152,0.12,0.25,0.12);
-		if(aplayer[my_index].__get("railgun_equipped")){
-			ConsoleFont("Calibri",35);	
-			ConsoleColor([1, 0, 0, 1]);
-			ConsoleText(0.2, 0.05,str(aplayer[my_index].__get("railgun_bullets")) + "/" +str(MAX_RAILGUN_BULLETS));
-			ConsoleFont("Calibri",20);	
-			ConsoleColor(gray_title);
-			ConsoleText(0.18, 0.01, "Railgun bullets");
-		}
-			
-		else{
-			ConsoleFont("Calibri",35);	
-			ConsoleColor([1, 0, 0, 1]);
-			ConsoleText(0.2, 0.05,str(aplayer[my_index].__get("rocket_bullets")) + "/" +str(MAX_ROCKET_BULLETS));
-			ConsoleFont("Calibri",20);	
-			ConsoleColor(gray_title);
-			ConsoleText(0.18, 0.01, "Rocket bullets");	
-		}	
-		
-		ConsoleColor(background_rect);
-		ConsoleFilledRect(0.403,0.12,0.1,0.12);
-		ConsoleColor([0.5,0.5,0.5,1]);
-		ConsoleFilledRect(0.42,0.08,0.03,0.04);	
-		ConsoleFilledRect(0.46,0.08,0.03,0.04);				
-		ConsoleColor([0, 0, 1, 1]);
-		ConsoleFont("Calibri",10);	
-		ConsoleText(0.415, 0.09,"Recharge : R");
-		ConsoleFont("Calibri",15);	
-		ConsoleText(0.43, 0.05,"1");
-		ConsoleText(0.47, 0.05,"2");
-		ConsoleFont("Calibri",20);	
-		ConsoleColor(gray_title);
-		ConsoleText(0.42, 0.01, "Arms");	
-		
-		ConsoleColor(background_rect);
-		ConsoleFilledRect(0.505,0.12,0.294,0.12);
-		ConsoleColor([0.5,0.5,0.5,1]);
-		ConsoleFilledRect(0.506,0.119,0.145,0.077);
-		ConsoleFilledRect(0.653,0.119,0.143,0.077);
-		ConsoleColor([1,0,0,1]);
-		
-		/*var x0=0.5;
-		var y0=0.12;
-		var s_x =0.022;
-		var s_y = 0.015;
-		ConsoleLines([(x0+(s_x*1)),(y0-(s_y*0)) ,(x0+(s_x*2)),(y0-(s_y*0)) ,(x0+(s_x*2)),(y0-(s_y*1)) ,(x0+(s_x*3)),(y0-(s_y*2)) ,(x0+(s_x*3)),(y0-(s_y*3)) ,(x0+(s_x*1)),(y0-(s_y*2)) ,(x0+(s_x*0)),(y0-(s_y*2)) ,(x0+(s_x*0)),(y0-(s_y*1)) ,(x0+(s_x*1)),(y0-(s_y*1)) ,(x0+(s_x*1)),(y0-(s_y*0))]);
-		ConsoleLines([(x0+(s_x*3)),(y0-(s_y*2)), (x0+(s_x*4)),(y0-(s_y*0)), (x0+(s_x*6)),(y0-(s_y*0)), (x0+(s_x*7)),(y0-(s_y*2)), (x0+(s_x*7)),(y0-(s_y*6)), (x0+(s_x*6)),(y0-(s_y*7)), (x0+(s_x*6)),(y0-(s_y*8)), (x0+(s_x*4)),(y0-(s_y*8)), (x0+(s_x*4)),(y0-(s_y*7)), (x0+(s_x*3)),(y0-(s_y*6)), (x0+(s_x*3)),(y0-(s_y*2))]);
-		*/
-		ConsoleColor([0, 1, 0, 1]);
-		ConsoleText(0.02, 0.96, my_id);
-		
-		ConsoleColor(gray_title);
-		var y = 0.095;
-		for(var i = 0 ; i < MAX_PLAYERS ; i++){
-			if( i != my_index){
-				ConsoleColor([0, 0, 1, 1]);
-				ConsoleFont("Calibri",12);				
-				ConsoleText(0.508, y, " " + score_ids[i] + ": " + str(score[i]));
-				y-=0.025;
-			}
-			else{
-				ConsoleColor([0, 1, 0, 1]);
-				ConsoleFont("Calibri",30);	
-				ConsoleText(0.72, 0.072, str(score[i]));
-				ConsoleFont("Calibri",15);	
-				ConsoleText(0.675, 0.045, my_id);		
-			}
-		}
-		ConsoleColor(gray_title);
-		ConsoleFont("Calibri",20);	
-		ConsoleText(0.61, 0.01, "Score");
-		
-		ConsoleColor(background_rect);
-		ConsoleFilledRect(0.8,0.12,0.2,0.12);
-	}
-		
+	ConsoleText(0.495, 0.40, "+");		
+	info();
+	
 	SceneEnd();
 }
 

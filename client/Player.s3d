@@ -14,7 +14,7 @@
 #define MAX_RAILGUN_BULLETS 20
 #define MAX_ROCKET_BULLETS 10
 #define MAX_BULLETS 40
-#define MAX_LIFE 10
+#define MAX_LIFE 10.0
 
 #define ACK 3
 #define POSITION_BULLET_PDU 8

@@ -38,7 +38,7 @@ function bullet::init(pos, dir, c, i, g, on, seq){
 		//rocket
 		speed = 0.4;
 		damage = 5;
-		mesh.scale(0.5);
+		mesh.scale(0.3);
 	}
 	alive = on;
 	
