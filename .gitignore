@@ -6,6 +6,4 @@ client/*.txt
 
 *.asm
 
-client/Client.s3d
 server/ip.txt
-GetId/Debug/*.txt
