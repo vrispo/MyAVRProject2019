@@ -422,8 +422,8 @@ function Player::update(){
 				PDU[0] = DELETE_BULLET_PDU;
 				PDU[1] = bullets[i].__get("player_index");
 				PDU[2] = bullets[i].__get("seq_number");
-				Outputln("COLPITO! Mando la DELETE");
-				trace(PDU);
+//				Outputln("COLPITO! Mando la DELETE");
+//				trace(PDU);
 				MySend(server_ip, PDU);
 				/*aspetto l'ack */
 				var recv = false;

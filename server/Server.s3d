@@ -155,7 +155,7 @@ function OnFrame(){
 					PDU[0] = DELETE_BULLET_PDU;
 					PDU[1] = bullets[i].__get("player_index");
 					PDU[2] = bullets[i].__get("seq_number");
-					trace(PDU);
+//					trace(PDU);
 					
 					for(var j = 0 ; j < MAX_PLAYERS ; j++){
 						if(online_player[j].isConnected())
