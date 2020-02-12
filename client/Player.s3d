@@ -8,7 +8,7 @@
 #define SIDE_STEP 0.05
 #define FRAME_STEP 1.0
 #define JUMP_HEIGHT 1.5
-#define JUMP_STEP 0.05
+#define JUMP_STEP 0.075
 #define Y_OFFSET [0.0, 0.1, 0.0]
 #define Y_BULLET_OFFSET [0.0, 0.8, 0.0]
 #define MAX_RAILGUN_BULLETS 20
