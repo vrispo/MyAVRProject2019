@@ -203,9 +203,9 @@ function Player::fp_draw(){
 	fp_obj.draw(VR_FRAMENUMBER, SWAT_START_WALK);
 	collision_obj.draw();
 	
-	foreach (var t in bullets)
-		if(t.isAlive())
-			t.draw();
+//	foreach (var t in bullets)
+//		if(t.isAlive())
+//			t.draw();
 }
 
 function Player::fp_draw_only(){
@@ -413,6 +413,7 @@ function Player::update(){
 	for (var i = 0; i < MAX_BULLETS; i++){
 		if(bullets[i].isAlive()){
 			bullets[i].update();
+			bullets[i].draw();
 			var bull_index = bullets[i].__get("player_index");
 			if (bullets[i].obj.isCollidingBBox(collision_obj) && bull_index != my_index){
 				bullets[i].__set("alive", false);
