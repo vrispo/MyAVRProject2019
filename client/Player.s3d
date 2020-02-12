@@ -476,7 +476,7 @@ function Player::update(){
 				}
 			}
 		}
-		if(bullets[i].isWalled){
+		if(bullets[i].isWalled()){
 			bullets[i].alive = false;
 		}
 	}
