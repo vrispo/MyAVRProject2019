@@ -16,6 +16,7 @@
 #define ENEMY_DISCONNECTION_PDU 6
 #define PING 7
 #define SCORE_PDU 11
+#define SERVER_CLOSED 13
 
 #define OK 1
 #define ERR -1
@@ -49,7 +50,7 @@ var my_level;
 var score = array(MAX_PLAYERS);
 var score_ids = array(MAX_PLAYERS);
 /* Camera globals */
-var Window = CVmWebBrowser();
+var window = CVmWebBrowser();
 var fs = false;
 var last_fs;
 
@@ -76,6 +77,40 @@ function OnDownload(){
 }
 
 var failed_attempts = 0;
+
+function OnExit(){
+	if(connected){
+		//Send disconnection PDU to the server
+		outputln("Disconnession... \n");
+		var PDU = array(4);
+		PDU[0] = DISCONNECT_REQ_PDU;
+		PDU[1] = my_ip;
+		PDU[2] = my_id;
+		PDU[3] = my_index;
+		mysend(server_ip, PDU);
+		
+		//Wait for the ack
+		var address1 = "................";
+		var received_data;
+		var recv = false;
+		var old_time = getTime();//returns time in milliseconds
+		
+		do{		
+			var current_time = getTime();
+		    	if(current_time-old_time>1000){
+		    		mysend(server_ip, PDU);
+		    		old_time = getTime();
+				} 
+				received_data = NetVarReceiveFrom(net_channel, &address1);	
+				if(received_data != null)
+					if(received_data[0] == ACK)
+						recv = true;			
+	    }while(!recv);
+	    
+	    outputln("Disconnected! \n");		
+	}
+}
+
 
 function OnInit(params){
 	/* initialize camera */
@@ -190,7 +225,9 @@ function OnInit(params){
 			}			
 		}
 		if (failed_attempts >= 10){
-			Quit();
+			outputln("Server not found. Exit...\n");
+			window.quit();
+			//Quit();
 		}						
     } while (!recv);
 	
@@ -207,7 +244,7 @@ function info(){
 	//Writing game info on the scene	
 	if(!connected){
 		ConsoleColor([1, 0, 0, 1]);
-		ConsoleText(0.5, 0.5, "You are not online!");		
+		ConsoleText(0.5, 0.5, "Connected, but not in game!");		
 	}
 	else{
 		var gray_title = [0.3,0.3,0.3,1];
@@ -304,9 +341,16 @@ function OnFrame(){
 	var current_time = getTime();
 	if(keyPressed("h") && ((current_time - last_fs) > 500)){
 		fs = !fs;		
-		Window.Fullscreen(fs);
+		window.Fullscreen(fs);
 		last_fs = current_time;
 	}
+	
+	//If the key esc is pressed close the game
+	if(keyPressed(VK_ESCAPE)){
+		onExit();
+		window.quit();		
+	}
+
 	
 	//Call player update and eventually send the new position to the server
 	aplayer[my_index].update(server_ip);	
@@ -436,6 +480,12 @@ function OnTimer(){
 			score = received_data[1];
 			score_ids = received_data[2];
 		}
+		
+		//Server closed
+		if(received_data[0] == SERVER_CLOSED){
+			outputln("Server closed. Exit...\n");
+			window.quit();
+		}		
 	}	
 }
 
@@ -447,38 +497,7 @@ function OnError(){
 	// TODO: put your errors handling code here
 }
 
-function OnExit(){
-	if(connected){
-		//Send disconnection PDU to the server
-		outputln("Disconnession... \n");
-		var PDU = array(4);
-		PDU[0] = DISCONNECT_REQ_PDU;
-		PDU[1] = my_ip;
-		PDU[2] = my_id;
-		PDU[3] = my_index;
-		mysend(server_ip, PDU);
-		
-		//Wait for the ack
-		var address1 = "................";
-		var received_data;
-		var recv = false;
-		var old_time = getTime();//returns time in milliseconds
-		
-		do{		
-			var current_time = getTime();
-		    	if(current_time-old_time>1000){
-		    		mysend(server_ip, PDU);
-		    		old_time = getTime();
-				} 
-				received_data = NetVarReceiveFrom(net_channel, &address1);	
-				if(received_data != null)
-					if(received_data[0] == ACK)
-						recv = true;			
-	    }while(!recv);
-	    
-	    outputln("Disconnected! \n");		
-	}
-}
+
 
 // Camera manager (using mouse)
 function CameraMove(){  

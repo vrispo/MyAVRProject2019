@@ -22,6 +22,7 @@
 #define KILL_PDU 10
 #define SCORE_PDU 11
 #define KILL_ACK_PDU 12
+#define SERVER_CLOSED 13
 
 #define OK 1
 #define ERR -1
@@ -450,4 +451,11 @@ function OnError(){
 
 function OnExit(){
 	// TODO: put your cleanup code here
+	var PDU = array(2);
+	PDU[0] = SERVER_CLOSED;
+	PDU[1] = OK;
+	for(var j=0 ; j < MAX_PLAYERS ; j++)
+	if(online_player[j].isConnected())
+		mysend(online_player[j].__get("ip"), PDU);	
+	
 }
