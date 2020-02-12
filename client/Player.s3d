@@ -10,7 +10,7 @@
 #define JUMP_HEIGHT 1.5
 #define JUMP_STEP 0.075
 #define Y_OFFSET [0.0, 0.1, 0.0]
-#define Y_BULLET_OFFSET [0.0, 0.8, 0.0]
+#define Y_BULLET_OFFSET [0.0, 1.0, 0.0]
 #define MAX_RAILGUN_BULLETS 20
 #define MAX_ROCKET_BULLETS 10
 #define MAX_BULLETS 40
@@ -472,9 +472,12 @@ function Player::update(){
 								recv = true;
 								life = MAX_LIFE;
 							}								
-				    } while(!recv);					
+				    } while(!recv);
 				}
 			}
+		}
+		if(bullets[i].isWalled){
+			bullets[i].alive = false;
 		}
 	}
 	//controllo se ho sparato
@@ -645,7 +648,7 @@ function Player::insertBullet(pos, dir, c, ind, g, seq){
 function Player::deleteBullet(ind, seq){
 	for(var i = 0 ; i < MAX_BULLETS ;  i++){
 		if((bullets[i].isAlive()) && (bullets[i].__get("player_index") == ind) &&(bullets[i].__get("seq_number") == seq)){
-			bullets[i].__set("alive", false);
+			bullets[i].__set("walled", true);
 			break;
 		}
 	}		

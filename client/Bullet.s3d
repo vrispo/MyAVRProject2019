@@ -10,6 +10,7 @@ class Bullet{
 	var obj;
 	var damage;
 	var alive;
+	var walled;
 	var seq_number;
 	var last_validation;
 	var texture;
@@ -18,6 +19,7 @@ class Bullet{
 	update();
 	draw();
 	isAlive();
+	isWalled();
 };
 
 function bullet::init(pos, dir, c, i, g, on, seq){
@@ -41,6 +43,7 @@ function bullet::init(pos, dir, c, i, g, on, seq){
 		mesh.scale(0.3);
 	}
 	alive = on;
+	walled = false;
 	
 	texture = CVmTexture("bullet_metal.jpg");	
 	material = CVmMaterial();
@@ -65,5 +68,9 @@ function bullet::draw(){
 }
 
 function bullet::isAlive(){
+	return alive;
+}
+
+function bullet::isWalled(){
 	return alive;
 }
