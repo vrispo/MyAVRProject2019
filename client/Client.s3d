@@ -425,8 +425,10 @@ function OnTimer(){
 		}
 		
 		//Received a delete bullet pdu
-		if(received_data[0] == DELETE_BULLET_PDU){		
+		if(received_data[0] == DELETE_BULLET_PDU){
 			aplayer[my_index].deleteBullet(received_data[1], received_data[2]);
+			Outputln("Il server ha mandato la DELETE");
+			trace(received_data);
 		}
 		
 		//Received a score PDU
